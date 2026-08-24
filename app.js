@@ -8,25 +8,19 @@ const CONFIG = {
   TOKEN: ''
 };
 
-/* ตัวเลือกสำรอง (ใช้เมื่อดึงจาก API ไม่ได้) — ควรตรงกับ Code.gs */
-const FALLBACK = {
+/* รายการตัวเลือก dropdown (แก้ที่นี่ได้เลย — ควรให้ตรงกับ OCCUPATIONS/PROVINCES ใน Code.gs) */
+const OPTIONS = {
   provinces: ['สงขลา', 'พัทลุง'],
   occupations: ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ']
 };
 
 let RECORDS = [];
 
-// ==================== โหลดตัวเลือก dropdown ====================
-fetch(CONFIG.SCRIPT_URL + '?action=options')
-  .then(r => r.json())
-  .then(initOptions)
-  .catch(() => initOptions(FALLBACK));
-
-function initOptions(o) {
-  fill('province', (o && o.provinces) || FALLBACK.provinces);
-  fill('mainOcc', (o && o.occupations) || FALLBACK.occupations);
-  fill('subOcc',  (o && o.occupations) || FALLBACK.occupations);
-}
+// ==================== เติมตัวเลือก dropdown ====================
+// ใช้รายการในเครื่องโดยตรง เพื่อให้แสดงครบเสมอ ไม่ขึ้นกับเวอร์ชัน Apps Script ที่ deploy
+fill('province', OPTIONS.provinces);
+fill('mainOcc', OPTIONS.occupations);
+fill('subOcc',  OPTIONS.occupations);
 
 function fill(id, arr) {
   const s = document.getElementById(id);
