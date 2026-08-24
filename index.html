@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ระบบเก็บข้อมูลครัวเรือน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="wrap head-inner">
+      <h1>ระบบเก็บข้อมูลครัวเรือนเป้าหมาย</h1>
+      <p>บันทึกข้อมูลพื้นฐาน อาชีพ และรายได้ — จัดเก็บลง Google Sheet</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs">
+      <div class="tab active" id="tab-form" onclick="switchTab('form')">📝 บันทึกข้อมูล</div>
+      <div class="tab" id="tab-data" onclick="switchTab('data')">📊 ดูข้อมูล</div>
+    </div>
+
+    <!-- ===== หน้าฟอร์ม ===== -->
+    <div id="page-form">
+      <div class="card">
+        <div class="sec-title">ตอนที่ 1 · ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
+        <div class="grid">
+          <div class="field full">
+            <label>ชื่อ - สกุล <span class="req">*</span></label>
+            <input id="name" required>
+          </div>
+          <div class="field"><label>บ้านเลขที่</label><input id="houseNo"></div>
+          <div class="field"><label>หมู่ที่</label><input id="moo"></div>
+          <div class="field"><label>ตำบล</label><input id="tambon"></div>
+          <div class="field"><label>อำเภอ</label><input id="amphoe"></div>
+          <div class="field">
+            <label>จังหวัด</label>
+            <select id="province"><option value="">— เลือก —</option></select>
+          </div>
+          <div class="field"><label>เบอร์โทร</label><input id="phone" inputmode="tel"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title">ข้อมูลอาชีพและรายได้</div>
+        <div class="grid">
+          <div class="field">
+            <label>ระบุอาชีพหลัก</label>
+            <select id="mainOcc" onchange="toggleOther('main')"><option value="">— เลือก —</option></select>
+          </div>
+          <div class="field hidden" id="mainOther-wrap">
+            <label>ระบุอาชีพหลัก (อื่น ๆ)</label><input id="mainOther">
+          </div>
+          <div class="field"><label>รายได้อาชีพหลัก (บาท/เดือน)</label><input id="mainIncome" inputmode="numeric"></div>
+          <div class="field"><label>ต้นทุนอาชีพหลัก (บาท/เดือน)</label><input id="mainCost" inputmode="numeric"></div>
+          <div class="field"><label>รายได้เป้าหมายหลัก (บาท/เดือน)</label><input id="targetIncome" inputmode="numeric"></div>
+          <div class="field">
+            <label>อาชีพเสริม</label>
+            <select id="subOcc" onchange="toggleOther('sub')"><option value="">— เลือก —</option></select>
+          </div>
+          <div class="field hidden" id="subOther-wrap">
+            <label>ระบุอาชีพเสริม (อื่น ๆ)</label><input id="subOther">
+          </div>
+          <div class="field"><label>รายได้อาชีพเสริม (บาท/เดือน)</label><input id="subIncome" inputmode="numeric"></div>
+          <div class="field"><label>ต้นทุนอาชีพเสริม (บาท/เดือน)</label><input id="subCost" inputmode="numeric"></div>
+          <div class="field"><label>รายได้จริง (บาท/ปี)</label><input id="actualIncome" inputmode="numeric"></div>
+        </div>
+      </div>
+
+      <button class="btn" id="saveBtn" onclick="save()">💾 บันทึกข้อมูล</button>
+    </div>
+
+    <!-- ===== หน้าข้อมูล ===== -->
+    <div id="page-data" class="hidden">
+      <div class="stats">
+        <div class="stat"><div class="n" id="st-total">–</div><div class="l">จำนวนครัวเรือน</div></div>
+        <div class="stat"><div class="n" id="st-prov">–</div><div class="l">จังหวัด</div></div>
+        <div class="stat"><div class="n" id="st-income">–</div><div class="l">รวมรายได้หลัก (บาท/เดือน)</div></div>
+      </div>
+      <div class="toolbar">
+        <input id="search" placeholder="🔍 ค้นหา ชื่อ / ตำบล / อำเภอ / อาชีพ…" oninput="renderTable()">
+        <button class="btn ghost" onclick="loadData()">↻ รีเฟรช</button>
+      </div>
+      <div class="tbl-wrap">
+        <table id="tbl">
+          <thead><tr>
+            <th>ลำดับ</th><th>ชื่อ - สกุล</th><th>บ้านเลขที่</th><th>หมู่</th><th>ตำบล</th><th>อำเภอ</th>
+            <th>จังหวัด</th><th>เบอร์โทร</th><th>อาชีพหลัก</th><th>รายได้หลัก</th><th>ต้นทุนหลัก</th>
+            <th>เป้าหมาย</th><th>อาชีพเสริม</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง/ปี</th><th>บันทึกเมื่อ</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="emptyMsg">กำลังโหลด…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
