@@ -6,21 +6,24 @@
  *         ?action=stats   → คืนสถิติสรุป (JSON)
  *         ?action=options → คืนตัวเลือก dropdown (JSON)
  *  doPost (body = JSON)   → บันทึก 1 ระเบียนลงชีต
+ *
+ *  รายได้ = ราคาขายต่อกิโล × ปริมาณที่ขาย (คำนวณอัตโนมัติ)
  */
 
 // ====================== การตั้งค่า ======================
 const SHEET_NAME  = 'ข้อมูลครัวเรือน';
 const PROVINCES   = ['สงขลา', 'พัทลุง'];
-const OCCUPATIONS = ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'อื่น ๆ'];
+const OCCUPATIONS = ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ'];
 
 // (ทางเลือก) ตั้งรหัสลับกันคนสุ่มยิงข้อมูล ต้องตรงกับ TOKEN ใน app.js
-// ปล่อยว่าง '' = ไม่ตรวจสอบ
 const SECRET_TOKEN = '';
 
 const HEADERS = [
   'ลำดับที่', 'ชื่อ - สกุล', 'บ้านเลขที่', 'หมู่ที่', 'ตำบล', 'อำเภอ', 'จังหวัด', 'เบอร์โทร',
-  'ระบุอาชีพหลัก', 'รายได้อาชีพหลัก (บาท:เดือน)', 'ต้นทุนอาชีพหลัก', 'รายได้เป้าหมายหลัก (บาท:เดือน)',
-  'อาชีพเสริม', 'รายได้อาชีพเสริม (บาท:เดือน)', 'ต้นทุนอาชีพเสริม', 'รายได้จริง (บาท:ปี)',
+  'ระบุอาชีพหลัก', 'ราคาขายต่อกิโล-หลัก (บาท/กก.)', 'ปริมาณที่ขาย-หลัก (กก.)',
+  'รายได้อาชีพหลัก (บาท:เดือน)', 'ต้นทุนอาชีพหลัก', 'รายได้เป้าหมายหลัก (บาท:เดือน)',
+  'อาชีพเสริม', 'ราคาขายต่อกิโล-เสริม (บาท/กก.)', 'ปริมาณที่ขาย-เสริม (กก.)',
+  'รายได้อาชีพเสริม (บาท:เดือน)', 'ต้นทุนอาชีพเสริม', 'รายได้จริง (บาท:ปี)',
   'วันที่บันทึก'
 ];
 
@@ -77,6 +80,14 @@ function num_(v) {
   return isNaN(n) ? v : n;
 }
 
+/** รายได้ = ราคา × ปริมาณ (ถ้ากรอกครบ) ไม่งั้นใช้ค่าที่ส่งมา */
+function calcIncome_(price, qty, fallback) {
+  const p = Number(String(price == null ? '' : price).replace(/,/g, '').trim());
+  const q = Number(String(qty   == null ? '' : qty).replace(/,/g, '').trim());
+  if (!isNaN(p) && !isNaN(q) && price !== '' && qty !== '') return p * q;
+  return num_(fallback);
+}
+
 function saveRecord(d) {
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
@@ -84,11 +95,15 @@ function saveRecord(d) {
     const sh = getSheet_();
     const nextNo = sh.getLastRow(); // แถวหัว = 1 → ระเบียนแรกได้ลำดับ 1
     const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
+
+    const mainIncome = calcIncome_(d.mainPricePerKg, d.mainQtyKg, d.mainIncome);
+    const subIncome  = calcIncome_(d.subPricePerKg,  d.subQtyKg,  d.subIncome);
+
     const row = [
       nextNo, d.name || '', d.houseNo || '', d.moo || '', d.tambon || '', d.amphoe || '',
       d.province || '', d.phone || '',
-      d.mainOcc || '', num_(d.mainIncome), num_(d.mainCost), num_(d.targetIncome),
-      d.subOcc || '', num_(d.subIncome), num_(d.subCost), num_(d.actualIncome),
+      d.mainOcc || '', num_(d.mainPricePerKg), num_(d.mainQtyKg), mainIncome, num_(d.mainCost), num_(d.targetIncome),
+      d.subOcc || '', num_(d.subPricePerKg), num_(d.subQtyKg), subIncome, num_(d.subCost), num_(d.actualIncome),
       now
     ];
     sh.appendRow(row);
@@ -107,21 +122,31 @@ function getRecords() {
   const values = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
   return values.map(r => ({
     no: r[0], name: r[1], houseNo: r[2], moo: r[3], tambon: r[4], amphoe: r[5],
-    province: r[6], phone: r[7], mainOcc: r[8], mainIncome: r[9], mainCost: r[10],
-    targetIncome: r[11], subOcc: r[12], subIncome: r[13], subCost: r[14],
-    actualIncome: r[15], ts: r[16]
+    province: r[6], phone: r[7],
+    mainOcc: r[8], mainPricePerKg: r[9], mainQtyKg: r[10], mainIncome: r[11], mainCost: r[12], targetIncome: r[13],
+    subOcc: r[14], subPricePerKg: r[15], subQtyKg: r[16], subIncome: r[17], subCost: r[18], actualIncome: r[19],
+    ts: r[20]
   })).reverse();
 }
 
 function getStats() {
   const recs = getRecords();
   const byProvince = {};
+  const byMainOcc = {};
   let sumMain = 0;
   recs.forEach(r => {
     if (r.province) byProvince[r.province] = (byProvince[r.province] || 0) + 1;
+    if (r.mainOcc)  byMainOcc[r.mainOcc]  = (byMainOcc[r.mainOcc]  || 0) + 1;
     sumMain += Number(r.mainIncome) || 0;
   });
-  return { total: recs.length, byProvince: byProvince, sumMainIncome: sumMain };
+  const total = recs.length;
+  return {
+    total: total,
+    byProvince: byProvince,
+    byMainOcc: byMainOcc,
+    sumMainIncome: sumMain,
+    avgMainIncome: total ? Math.round(sumMain / total) : 0
+  };
 }
 
 /** รันครั้งเดียวเพื่อเตรียมชีตล่วงหน้า (ไม่บังคับ) */

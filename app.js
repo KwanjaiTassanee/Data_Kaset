@@ -4,17 +4,15 @@
  *  ถ้าตั้ง SECRET_TOKEN ใน Code.gs ให้ใส่ค่าเดียวกันที่ TOKEN
  * ========================================================= */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbySYZE4mLS3FWN50jSAVxGry5e9-_vYz_nH5H4Mb1rZDvgCr7oCCrCIs9BkFcDKJdiR/exec',   // เช่น https://script.google.com/macros/s/AKfyc.../exec
+  SCRIPT_URL: 'วาง_WEB_APP_URL_ตรงนี้',   // เช่น https://script.google.com/macros/s/AKfyc.../exec
   TOKEN: ''
 };
 
 /* ตัวเลือกสำรอง (ใช้เมื่อดึงจาก API ไม่ได้) — ควรตรงกับ Code.gs */
 const FALLBACK = {
   provinces: ['สงขลา', 'พัทลุง'],
-  occupations: ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'อื่น ๆ']
+  occupations: ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ']
 };
-
-let RECORDS = [];
 
 // ---------- โหลดตัวเลือก dropdown ----------
 fetch(CONFIG.SCRIPT_URL + '?action=options')
@@ -41,6 +39,20 @@ function toggleOther(which) {
   document.getElementById(which + 'Other-wrap').classList.toggle('hidden', sel !== 'อื่น ๆ');
 }
 
+/** คำนวณรายได้ = ราคาต่อกิโล × ปริมาณ (เมื่อกรอกครบทั้งสองช่อง) */
+function calcIncome(which) {
+  const price = val(which + 'PricePerKg').replace(/,/g, '');
+  const qty   = val(which + 'QtyKg').replace(/,/g, '');
+  const auto  = document.getElementById(which + 'Auto');
+  if (price !== '' && qty !== '' && !isNaN(price) && !isNaN(qty)) {
+    const income = Number(price) * Number(qty);
+    document.getElementById(which + 'Income').value = income;
+    if (auto) auto.textContent = '· คำนวณอัตโนมัติ';
+  } else {
+    if (auto) auto.textContent = '';
+  }
+}
+
 function switchTab(t) {
   document.getElementById('tab-form').classList.toggle('active', t === 'form');
   document.getElementById('tab-data').classList.toggle('active', t === 'data');
@@ -61,8 +73,10 @@ function save() {
     token: CONFIG.TOKEN,
     name, houseNo: val('houseNo'), moo: val('moo'), tambon: val('tambon'), amphoe: val('amphoe'),
     province: val('province'), phone: val('phone'),
-    mainOcc, mainIncome: val('mainIncome'), mainCost: val('mainCost'), targetIncome: val('targetIncome'),
-    subOcc, subIncome: val('subIncome'), subCost: val('subCost'), actualIncome: val('actualIncome')
+    mainOcc, mainPricePerKg: val('mainPricePerKg'), mainQtyKg: val('mainQtyKg'),
+    mainIncome: val('mainIncome'), mainCost: val('mainCost'), targetIncome: val('targetIncome'),
+    subOcc, subPricePerKg: val('subPricePerKg'), subQtyKg: val('subQtyKg'),
+    subIncome: val('subIncome'), subCost: val('subCost'), actualIncome: val('actualIncome')
   };
 
   const btn = document.getElementById('saveBtn');
@@ -87,54 +101,56 @@ function save() {
 }
 
 function clearForm() {
-  ['name','houseNo','moo','tambon','amphoe','phone','mainOther','mainIncome','mainCost',
-   'targetIncome','subOther','subIncome','subCost','actualIncome']
+  ['name','houseNo','moo','tambon','amphoe','phone','mainOther','mainPricePerKg','mainQtyKg',
+   'mainIncome','mainCost','targetIncome','subOther','subPricePerKg','subQtyKg','subIncome',
+   'subCost','actualIncome']
     .forEach(id => document.getElementById(id).value = '');
   ['province','mainOcc','subOcc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mainAuto').textContent = '';
+  document.getElementById('subAuto').textContent = '';
   toggleOther('main'); toggleOther('sub');
   document.getElementById('name').focus();
 }
 
-// ---------- ดูข้อมูล ----------
+// ---------- สรุปข้อมูล (ไม่แสดงรายการรายบุคคลบนหน้าเว็บ) ----------
 function loadData() {
-  const empty = document.getElementById('emptyMsg');
-  empty.textContent = 'กำลังโหลด…'; empty.style.display = 'block';
-  document.getElementById('tbody').innerHTML = '';
-
-  fetch(CONFIG.SCRIPT_URL + '?action=list')
-    .then(r => r.json())
-    .then(recs => { RECORDS = recs || []; renderTable(); })
-    .catch(e => { empty.textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + e.message; });
+  document.getElementById('byProvince').innerHTML = '<div class="empty">กำลังโหลด…</div>';
+  document.getElementById('byOcc').innerHTML = '<div class="empty">กำลังโหลด…</div>';
 
   fetch(CONFIG.SCRIPT_URL + '?action=stats')
     .then(r => r.json())
-    .then(s => {
-      document.getElementById('st-total').textContent = (s.total || 0).toLocaleString();
-      document.getElementById('st-prov').textContent = Object.keys(s.byProvince || {}).length;
-      document.getElementById('st-income').textContent = (s.sumMainIncome || 0).toLocaleString();
-    })
-    .catch(() => {});
+    .then(renderStats)
+    .catch(e => {
+      document.getElementById('byProvince').innerHTML = '<div class="empty">โหลดไม่สำเร็จ: ' + e.message + '</div>';
+      document.getElementById('byOcc').innerHTML = '';
+    });
 }
 
-function renderTable() {
-  const q = (document.getElementById('search').value || '').toLowerCase();
-  const rows = RECORDS.filter(r => !q ||
-    [r.name, r.tambon, r.amphoe, r.province, r.mainOcc, r.subOcc].join(' ').toLowerCase().includes(q));
-  const tb = document.getElementById('tbody'); tb.innerHTML = '';
-  const nf = v => (v === '' || v === null || v === undefined) ? '' : (isNaN(v) ? v : Number(v).toLocaleString());
+function renderStats(s) {
+  document.getElementById('st-total').textContent  = (s.total || 0).toLocaleString();
+  document.getElementById('st-prov').textContent   = Object.keys(s.byProvince || {}).length;
+  document.getElementById('st-income').textContent = (s.sumMainIncome || 0).toLocaleString();
+  document.getElementById('st-avg').textContent    = (s.avgMainIncome || 0).toLocaleString();
+  renderBreakdown('byProvince', s.byProvince);
+  renderBreakdown('byOcc', s.byMainOcc);
+}
 
-  rows.forEach(r => {
-    const tr = document.createElement('tr');
-    [r.no, r.name, r.houseNo, r.moo, r.tambon, r.amphoe, r.province, r.phone, r.mainOcc,
-     nf(r.mainIncome), nf(r.mainCost), nf(r.targetIncome), r.subOcc, nf(r.subIncome),
-     nf(r.subCost), nf(r.actualIncome), r.ts]
-      .forEach(v => { const td = document.createElement('td'); td.textContent = (v === null || v === undefined) ? '' : v; tr.appendChild(td); });
-    tb.appendChild(tr);
+function renderBreakdown(elId, obj) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  const entries = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) { el.innerHTML = '<div class="empty">ยังไม่มีข้อมูล</div>'; return; }
+  const max = Math.max.apply(null, entries.map(e => e[1]));
+  entries.forEach(([key, val]) => {
+    const pct = max ? Math.round(val / max * 100) : 0;
+    const row = document.createElement('div'); row.className = 'brow';
+    const label = document.createElement('span'); label.textContent = key;
+    const bar = document.createElement('span'); bar.className = 'bar';
+    const fill = document.createElement('i'); fill.style.width = pct + '%'; bar.appendChild(fill);
+    const cnt = document.createElement('span'); cnt.className = 'c'; cnt.textContent = val.toLocaleString();
+    row.appendChild(label); row.appendChild(bar); row.appendChild(cnt);
+    el.appendChild(row);
   });
-
-  const empty = document.getElementById('emptyMsg');
-  if (rows.length === 0) { empty.style.display = 'block'; empty.textContent = RECORDS.length ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีข้อมูล'; }
-  else empty.style.display = 'none';
 }
 
 // ---------- แจ้งเตือน ----------
