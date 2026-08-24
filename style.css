@@ -5,14 +5,20 @@
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:"Noto Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55}
+
+/* ---- header ---- */
 header{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;padding:22px 20px}
 .head-inner{padding-bottom:0}
 header h1{margin:0;font-size:20px;font-weight:700}
 header p{margin:4px 0 0;opacity:.85;font-size:13px}
-.wrap{max-width:900px;margin:0 auto;padding:16px}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+
+/* ---- tabs ---- */
 .tabs{display:flex;gap:8px;margin:16px 0}
 .tab{flex:1;padding:11px;text-align:center;border:1px solid var(--line);background:#fff;border-radius:10px;cursor:pointer;font-weight:600;color:var(--muted);transition:.15s}
 .tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* ---- card / form ---- */
 .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,60,45,.04)}
 .sec-title{font-weight:700;color:var(--green-d);border-left:4px solid var(--green);padding-left:10px;margin:4px 0 14px;font-size:15px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
@@ -24,23 +30,35 @@ label .req{color:var(--err)}
 label .auto{color:var(--green);font-size:11px;font-weight:600}
 input,select{font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;width:100%}
 input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
+
+/* ---- buttons ---- */
 .btn{background:var(--green);color:#fff;border:none;padding:13px 22px;border-radius:10px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;width:100%;transition:.15s}
-.btn:hover{background:var(--green-d)} .btn:disabled{opacity:.6;cursor:wait}
+.btn:hover{background:var(--green-d)}
+.btn:disabled{opacity:.6;cursor:wait}
 .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green);width:auto;padding:9px 16px;font-size:14px}
+
+/* ---- toast ---- */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--green-d);color:#fff;padding:13px 22px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:.3s;z-index:99}
 .toast.show{opacity:1}
 .toast.error{background:var(--err)}
+
+/* ---- stats cards ---- */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
-.breakdown{display:flex;flex-direction:column;gap:9px}
-.brow{display:grid;grid-template-columns:130px 1fr 56px;align-items:center;gap:10px;font-size:14px}
-@media(max-width:640px){.brow{grid-template-columns:100px 1fr 44px}}
-.bar{height:11px;background:var(--green-l);border-radius:6px;overflow:hidden}
-.bar>i{display:block;height:100%;background:var(--green);border-radius:6px}
-.brow .c{text-align:right;font-weight:700;color:var(--green-d)}
 .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
 .stat .n{font-size:26px;font-weight:700;color:var(--green)}
 .stat .l{font-size:13px;color:var(--muted)}
+
+/* ---- breakdown bar graph ---- */
+.breakdown{display:flex;flex-direction:column;gap:4px}
+.brow{display:grid;grid-template-columns:130px 1fr 52px;align-items:center;gap:12px;font-size:14px;padding:8px 2px;border-bottom:1px solid var(--line)}
+.brow:last-child{border-bottom:none}
+.bar{height:12px;background:var(--green-l);border-radius:6px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--green);border-radius:6px;min-width:3px}
+.brow .c{font-weight:700;color:var(--green-d);white-space:nowrap;text-align:right}
+@media(max-width:640px){.brow{grid-template-columns:92px 1fr 42px;gap:8px}}
+
+/* ---- search + table ---- */
 .toolbar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .toolbar input{flex:1;min-width:180px}
 .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
@@ -49,6 +67,8 @@ th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left}
 th{background:var(--green-l);color:var(--green-d);font-weight:600;position:sticky;top:0}
 tr:hover td{background:#fafcfb}
 .empty{padding:40px;text-align:center;color:var(--muted)}
+
+/* ---- misc ---- */
 .spin{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-3px;margin-right:6px}
 @keyframes s{to{transform:rotate(360deg)}}
 .hidden{display:none!important}

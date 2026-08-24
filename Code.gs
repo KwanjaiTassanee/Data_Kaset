@@ -1,21 +1,23 @@
 /**
  * ระบบเก็บข้อมูลครัวเรือน — API (Google Sheet เป็นฐานข้อมูล)
- * ใช้คู่กับหน้าเว็บ static ที่ deploy บน Netlify
- * ------------------------------------------------------------------
- *  doGet  ?action=list    → คืนข้อมูลทั้งหมด (JSON)
- *         ?action=stats   → คืนสถิติสรุป (JSON)
- *         ?action=options → คืนตัวเลือก dropdown (JSON)
- *  doPost (body = JSON)   → บันทึก 1 ระเบียนลงชีต
+ * ใช้คู่กับหน้าเว็บ static ที่ deploy บน GitHub + Netlify
+ * ==================================================================
+ *  ENDPOINT
+ *    GET  ?action=list     → รายการข้อมูลทั้งหมด (JSON, ล่าสุดอยู่บน)
+ *    GET  ?action=stats    → สถิติสรุป (JSON)
+ *    GET  ?action=options  → ตัวเลือก dropdown (JSON)
+ *    POST (body = JSON)     → บันทึก 1 ระเบียน
  *
  *  รายได้ = ราคาขายต่อกิโล × ปริมาณที่ขาย (คำนวณอัตโนมัติ)
+ * ==================================================================
  */
 
-// ====================== การตั้งค่า ======================
+// ========================= การตั้งค่า =========================
 const SHEET_NAME  = 'ข้อมูลครัวเรือน';
 const PROVINCES   = ['สงขลา', 'พัทลุง'];
 const OCCUPATIONS = ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ'];
 
-// (ทางเลือก) ตั้งรหัสลับกันคนสุ่มยิงข้อมูล ต้องตรงกับ TOKEN ใน app.js
+// (ทางเลือก) รหัสลับกันคนสุ่มยิงข้อมูล — ต้องตรงกับ TOKEN ใน app.js ('' = ไม่ตรวจ)
 const SECRET_TOKEN = '';
 
 const HEADERS = [
@@ -27,7 +29,7 @@ const HEADERS = [
   'วันที่บันทึก'
 ];
 
-// ====================== จุดเข้า API ======================
+// ========================= จุดเข้า API =========================
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || 'ping';
   if (action === 'list')    return json_(getRecords());
@@ -54,7 +56,7 @@ function json_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ====================== ตรรกะฐานข้อมูล ======================
+// ========================= ตัวช่วย =========================
 function getOptions() {
   return { provinces: PROVINCES, occupations: OCCUPATIONS };
 }
@@ -74,6 +76,7 @@ function getSheet_() {
   return sh;
 }
 
+/** แปลงข้อความตัวเลข → ตัวเลขจริง (ตัด comma) ; ว่าง = '' */
 function num_(v) {
   if (v === '' || v === null || v === undefined) return '';
   const n = Number(String(v).replace(/,/g, '').trim());
@@ -82,15 +85,18 @@ function num_(v) {
 
 /** รายได้ = ราคา × ปริมาณ (ถ้ากรอกครบ) ไม่งั้นใช้ค่าที่ส่งมา */
 function calcIncome_(price, qty, fallback) {
-  const p = Number(String(price == null ? '' : price).replace(/,/g, '').trim());
-  const q = Number(String(qty   == null ? '' : qty).replace(/,/g, '').trim());
-  if (!isNaN(p) && !isNaN(q) && price !== '' && qty !== '') return p * q;
+  const hasP = price !== '' && price !== null && price !== undefined;
+  const hasQ = qty   !== '' && qty   !== null && qty   !== undefined;
+  const p = Number(String(price).replace(/,/g, '').trim());
+  const q = Number(String(qty).replace(/,/g, '').trim());
+  if (hasP && hasQ && !isNaN(p) && !isNaN(q)) return p * q;
   return num_(fallback);
 }
 
+// ========================= อ่าน/เขียนข้อมูล =========================
 function saveRecord(d) {
   const lock = LockService.getScriptLock();
-  lock.waitLock(20000);
+  lock.waitLock(20000); // กันการเขียนชนกันเมื่อหลายคนกรอกพร้อมกัน
   try {
     const sh = getSheet_();
     const nextNo = sh.getLastRow(); // แถวหัว = 1 → ระเบียนแรกได้ลำดับ 1
@@ -115,6 +121,7 @@ function saveRecord(d) {
   }
 }
 
+/** คืนรายการทั้งหมด (ไม่ส่งคอลัมน์ 'วันที่บันทึก' ออกไปหน้าเว็บ) */
 function getRecords() {
   const sh = getSheet_();
   const last = sh.getLastRow();
@@ -124,8 +131,8 @@ function getRecords() {
     no: r[0], name: r[1], houseNo: r[2], moo: r[3], tambon: r[4], amphoe: r[5],
     province: r[6], phone: r[7],
     mainOcc: r[8], mainPricePerKg: r[9], mainQtyKg: r[10], mainIncome: r[11], mainCost: r[12], targetIncome: r[13],
-    subOcc: r[14], subPricePerKg: r[15], subQtyKg: r[16], subIncome: r[17], subCost: r[18], actualIncome: r[19],
-    ts: r[20]
+    subOcc: r[14], subPricePerKg: r[15], subQtyKg: r[16], subIncome: r[17], subCost: r[18], actualIncome: r[19]
+    // r[20] = วันที่บันทึก — เก็บในชีตแต่ไม่ส่งออก
   })).reverse();
 }
 

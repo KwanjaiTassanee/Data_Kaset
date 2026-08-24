@@ -21,7 +21,7 @@
       <div class="tab" id="tab-data" onclick="switchTab('data')">📊 สรุปข้อมูล</div>
     </div>
 
-    <!-- ===== หน้าฟอร์ม ===== -->
+    <!-- ============ หน้าฟอร์ม ============ -->
     <div id="page-form">
       <div class="card">
         <div class="sec-title">ตอนที่ 1 · ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
@@ -45,6 +45,7 @@
       <div class="card">
         <div class="sec-title">ข้อมูลอาชีพและรายได้</div>
         <div class="grid">
+          <!-- อาชีพหลัก -->
           <div class="field">
             <label>ระบุอาชีพหลัก</label>
             <select id="mainOcc" onchange="toggleOther('main')"><option value="">— เลือก —</option></select>
@@ -60,6 +61,8 @@
           </div>
           <div class="field"><label>ต้นทุนอาชีพหลัก (บาท)</label><input id="mainCost" inputmode="numeric"></div>
           <div class="field"><label>รายได้เป้าหมายหลัก (บาท/เดือน)</label><input id="targetIncome" inputmode="numeric"></div>
+
+          <!-- อาชีพเสริม -->
           <div class="field">
             <label>อาชีพเสริม</label>
             <select id="subOcc" onchange="toggleOther('sub')"><option value="">— เลือก —</option></select>
@@ -74,14 +77,14 @@
             <input id="subIncome" inputmode="numeric">
           </div>
           <div class="field"><label>ต้นทุนอาชีพเสริม (บาท)</label><input id="subCost" inputmode="numeric"></div>
-          <div class="field"><label>รายได้จริง (บาท/ปี)</label><input id="actualIncome" inputmode="numeric"></div>
+          <div class="field"><label>รายได้จริง (บาท/เดือน)</label><input id="actualIncome" inputmode="numeric"></div>
         </div>
       </div>
 
       <button class="btn" id="saveBtn" onclick="save()">💾 บันทึกข้อมูล</button>
     </div>
 
-    <!-- ===== หน้าสรุปข้อมูล ===== -->
+    <!-- ============ หน้าสรุปข้อมูล ============ -->
     <div id="page-data" class="hidden">
       <div class="stats">
         <div class="stat"><div class="n" id="st-total">–</div><div class="l">จำนวนครัวเรือน</div></div>
@@ -89,25 +92,40 @@
         <div class="stat"><div class="n" id="st-income">–</div><div class="l">รวมรายได้หลัก (บาท)</div></div>
         <div class="stat"><div class="n" id="st-avg">–</div><div class="l">รายได้หลักเฉลี่ย (บาท)</div></div>
       </div>
+
       <div class="card">
         <div class="sec-title">จำแนกตามจังหวัด</div>
         <div id="byProvince" class="breakdown"><div class="empty">กำลังโหลด…</div></div>
       </div>
+
       <div class="card">
-        <div class="sec-title">จำแนกตามอาชีพหลัก (พืช)</div>
+        <div class="sec-title">จำแนกตามอาชีพหลัก (พืชเกษตร)</div>
         <div id="byOcc" class="breakdown"><div class="empty">กำลังโหลด…</div></div>
       </div>
-      <div style="text-align:center;margin-top:4px">
-        <button class="btn ghost" onclick="loadData()">↻ รีเฟรช</button>
+
+      <div class="card">
+        <div class="sec-title">รายการข้อมูลทั้งหมด</div>
+        <div class="toolbar">
+          <input id="search" placeholder="🔍 ค้นหา ชื่อ / ตำบล / อำเภอ / จังหวัด / อาชีพ…" oninput="renderTable()">
+          <button class="btn ghost" onclick="loadData()">↻ รีเฟรช</button>
+        </div>
+        <div class="tbl-wrap">
+          <table id="tbl">
+            <thead><tr>
+              <th>ลำดับ</th><th>ชื่อ - สกุล</th><th>บ้านเลขที่</th><th>หมู่</th><th>ตำบล</th><th>อำเภอ</th>
+              <th>จังหวัด</th><th>เบอร์โทร</th><th>อาชีพหลัก</th><th>ราคา/กก.หลัก</th><th>ปริมาณหลัก(กก.)</th>
+              <th>รายได้หลัก</th><th>ต้นทุนหลัก</th><th>เป้าหมาย</th><th>อาชีพเสริม</th>
+              <th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง/ปี</th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="emptyMsg">กำลังโหลด…</div>
+        </div>
       </div>
-      <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:10px">
-        ดูข้อมูลรายบุคคลทั้งหมดได้ที่ Google Sheet
-      </p>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
-
   <script src="app.js"></script>
 </body>
 </html>
