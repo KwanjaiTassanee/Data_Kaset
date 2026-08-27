@@ -8,11 +8,9 @@ const CONFIG = {
   TOKEN: ''
 };
 
-/* รายการอาชีพ (แก้ที่นี่ได้เลย — ควรตรงกับ OCCUPATIONS ใน Code.gs)
-   ส่วนจังหวัด/อำเภอ/ตำบล ใช้ข้อมูลจาก thai-geo.js (ตัวแปร GEO) */
-const OPTIONS = {
-  occupations: ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ']
-};
+/* รายการอาชีพ (แก้ที่นี่ได้ — ควรตรงกับ OCCUPATIONS ใน Code.gs)
+   จังหวัด/อำเภอ/ตำบล ใช้ข้อมูลจาก thai-geo.js (ตัวแปร GEO) */
+const OCCUPATIONS = ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ'];
 
 let RECORDS = [];
 
@@ -20,8 +18,8 @@ let RECORDS = [];
 setOptions('province', Object.keys(GEO), '— เลือก —');
 setOptions('amphoe', [], '— เลือกจังหวัดก่อน —');
 setOptions('tambon', [], '— เลือกอำเภอก่อน —');
-fill('mainOcc', OPTIONS.occupations);
-fill('subOcc',  OPTIONS.occupations);
+fill('mainOcc', OCCUPATIONS);
+fill('subOcc',  OCCUPATIONS);
 
 /** ล้างแล้วสร้างตัวเลือกใหม่ พร้อม placeholder */
 function setOptions(id, arr, placeholder) {
@@ -29,19 +27,13 @@ function setOptions(id, arr, placeholder) {
   s.innerHTML = '';
   const p = document.createElement('option');
   p.value = ''; p.textContent = placeholder; s.appendChild(p);
-  arr.forEach(v => {
-    const op = document.createElement('option');
-    op.value = v; op.textContent = v; s.appendChild(op);
-  });
+  arr.forEach(v => { const op = document.createElement('option'); op.value = v; op.textContent = v; s.appendChild(op); });
 }
 
-/** เติมตัวเลือกต่อท้าย (ใช้กับ select ที่มี placeholder ใน HTML อยู่แล้ว) */
+/** เติมตัวเลือกต่อท้าย (ใช้กับ select ที่มี placeholder ใน HTML แล้ว) */
 function fill(id, arr) {
   const s = document.getElementById(id);
-  arr.forEach(v => {
-    const op = document.createElement('option');
-    op.value = v; op.textContent = v; s.appendChild(op);
-  });
+  arr.forEach(v => { const op = document.createElement('option'); op.value = v; op.textContent = v; s.appendChild(op); });
 }
 
 // จังหวัด → อำเภอ → ตำบล (อัตโนมัติ)
@@ -97,8 +89,8 @@ function save() {
 
   const data = {
     token: CONFIG.TOKEN,
-    name, houseNo: val('houseNo'), moo: val('moo'), tambon: val('tambon'), amphoe: val('amphoe'),
-    province: val('province'), phone: val('phone'),
+    name, houseNo: val('houseNo'), moo: val('moo'),
+    province: val('province'), amphoe: val('amphoe'), tambon: val('tambon'), phone: val('phone'),
     mainOcc, mainPricePerKg: val('mainPricePerKg'), mainQtyKg: val('mainQtyKg'),
     mainIncome: val('mainIncome'), mainCost: val('mainCost'), targetIncome: val('targetIncome'),
     subOcc, subPricePerKg: val('subPricePerKg'), subQtyKg: val('subQtyKg'),
@@ -108,7 +100,6 @@ function save() {
   const btn = document.getElementById('saveBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>กำลังบันทึก…';
 
-  // Content-Type text/plain เพื่อเลี่ยง CORS preflight ของ Apps Script
   fetch(CONFIG.SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -132,7 +123,7 @@ function clearForm() {
    'subCost','actualIncome']
     .forEach(id => document.getElementById(id).value = '');
   ['province','mainOcc','subOcc'].forEach(id => document.getElementById(id).value = '');
-  onProvince(); // รีเซ็ต อำเภอ/ตำบล กลับเป็น placeholder
+  onProvince(); // รีเซ็ต อำเภอ/ตำบล
   document.getElementById('mainAuto').textContent = '';
   document.getElementById('subAuto').textContent = '';
   toggleOther('main'); toggleOther('sub');
@@ -141,7 +132,6 @@ function clearForm() {
 
 // ==================== สรุปข้อมูล + รายการ ====================
 function loadData() {
-  // กราฟสรุป
   document.getElementById('byProvince').innerHTML = '<div class="empty">กำลังโหลด…</div>';
   document.getElementById('byOcc').innerHTML = '<div class="empty">กำลังโหลด…</div>';
   fetch(CONFIG.SCRIPT_URL + '?action=stats')
@@ -152,7 +142,6 @@ function loadData() {
       document.getElementById('byOcc').innerHTML = '';
     });
 
-  // รายการข้อมูล
   const empty = document.getElementById('emptyMsg');
   empty.textContent = 'กำลังโหลด…'; empty.style.display = 'block';
   document.getElementById('tbody').innerHTML = '';
@@ -189,7 +178,7 @@ function renderBreakdown(elId, obj) {
   });
 }
 
-/** ตารางรายการ (ไม่แสดงคอลัมน์ 'วันที่บันทึก') */
+/** ตารางรายการ — ลำดับคอลัมน์ตรงกับหัวตารางและชีต (ไม่แสดง 'วันที่บันทึก') */
 function renderTable() {
   const q = (document.getElementById('search').value || '').toLowerCase();
   const rows = RECORDS.filter(r => !q ||
@@ -199,8 +188,8 @@ function renderTable() {
 
   rows.forEach(r => {
     const tr = document.createElement('tr');
-    [r.no, r.name, r.houseNo, r.moo, r.tambon, r.amphoe, r.province, r.phone, r.mainOcc,
-     nf(r.mainPricePerKg), nf(r.mainQtyKg), nf(r.mainIncome), nf(r.mainCost), nf(r.targetIncome),
+    [r.no, r.name, r.houseNo, r.moo, r.province, r.amphoe, r.tambon, r.phone,
+     r.mainOcc, nf(r.mainPricePerKg), nf(r.mainQtyKg), nf(r.mainIncome), nf(r.mainCost), nf(r.targetIncome),
      r.subOcc, nf(r.subPricePerKg), nf(r.subQtyKg), nf(r.subIncome), nf(r.subCost), nf(r.actualIncome)]
       .forEach(v => { const td = document.createElement('td'); td.textContent = (v === null || v === undefined) ? '' : v; tr.appendChild(td); });
     tb.appendChild(tr);

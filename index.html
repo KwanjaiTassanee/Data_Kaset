@@ -21,15 +21,12 @@
       <div class="tab" id="tab-data" onclick="switchTab('data')">📊 สรุปข้อมูล</div>
     </div>
 
-    <!-- ============ หน้าฟอร์ม ============ -->
+    <!-- ============ หน้าฟอร์ม (คอลัมน์เดียว เรียงตามลำดับคอลัมน์ในชีต) ============ -->
     <div id="page-form">
       <div class="card">
-        <div class="sec-title">ตอนที่ 1 · ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
-        <div class="grid">
-          <div class="field full">
-            <label>ชื่อ - สกุล <span class="req">*</span></label>
-            <input id="name" required>
-          </div>
+        <div class="sec-title">ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
+        <div class="form-col">
+          <div class="field"><label>ชื่อ - สกุล <span class="req">*</span></label><input id="name" required></div>
           <div class="field"><label>บ้านเลขที่</label><input id="houseNo"></div>
           <div class="field"><label>หมู่ที่</label><input id="moo"></div>
           <div class="field">
@@ -38,11 +35,11 @@
           </div>
           <div class="field">
             <label>อำเภอ</label>
-            <select id="amphoe" onchange="onAmphoe()"><option value="">— เลือกจังหวัดก่อน —</option></select>
+            <select id="amphoe" onchange="onAmphoe()"><option value="">— เลือก —</option></select>
           </div>
           <div class="field">
             <label>ตำบล</label>
-            <select id="tambon"><option value="">— เลือกอำเภอก่อน —</option></select>
+            <select id="tambon"><option value="">— เลือก —</option></select>
           </div>
           <div class="field"><label>เบอร์โทร</label><input id="phone" inputmode="tel"></div>
         </div>
@@ -50,7 +47,7 @@
 
       <div class="card">
         <div class="sec-title">ข้อมูลอาชีพและรายได้</div>
-        <div class="grid">
+        <div class="form-col">
           <!-- อาชีพหลัก -->
           <div class="field">
             <label>ระบุอาชีพหลัก</label>
@@ -59,14 +56,14 @@
           <div class="field hidden" id="mainOther-wrap">
             <label>ระบุอาชีพหลัก (อื่น ๆ)</label><input id="mainOther">
           </div>
-          <div class="field"><label>ราคาขายต่อกิโล (บาท/กก.)</label><input id="mainPricePerKg" inputmode="decimal" oninput="calcIncome('main')"></div>
-          <div class="field"><label>ปริมาณที่ขาย (กก.)</label><input id="mainQtyKg" inputmode="decimal" oninput="calcIncome('main')"></div>
+          <div class="field"><label>ราคาขายต่อกิโล-หลัก (บาท/กก.)</label><input id="mainPricePerKg" inputmode="decimal" oninput="calcIncome('main')"></div>
+          <div class="field"><label>ปริมาณที่ขาย-หลัก (กก.)</label><input id="mainQtyKg" inputmode="decimal" oninput="calcIncome('main')"></div>
           <div class="field">
-            <label>รายได้อาชีพหลัก (บาท) <span class="auto" id="mainAuto"></span></label>
+            <label>รายได้อาชีพหลัก (บาท:เดือน) <span class="auto" id="mainAuto"></span></label>
             <input id="mainIncome" inputmode="numeric">
           </div>
           <div class="field"><label>ต้นทุนอาชีพหลัก (บาท)</label><input id="mainCost" inputmode="numeric"></div>
-          <div class="field"><label>รายได้เป้าหมายหลัก (บาท/เดือน)</label><input id="targetIncome" inputmode="numeric"></div>
+          <div class="field"><label>รายได้เป้าหมายหลัก (บาท:เดือน)</label><input id="targetIncome" inputmode="numeric"></div>
 
           <!-- อาชีพเสริม -->
           <div class="field">
@@ -76,14 +73,14 @@
           <div class="field hidden" id="subOther-wrap">
             <label>ระบุอาชีพเสริม (อื่น ๆ)</label><input id="subOther">
           </div>
-          <div class="field"><label>ราคาขายต่อกิโล (บาท/กก.)</label><input id="subPricePerKg" inputmode="decimal" oninput="calcIncome('sub')"></div>
-          <div class="field"><label>ปริมาณที่ขาย (กก.)</label><input id="subQtyKg" inputmode="decimal" oninput="calcIncome('sub')"></div>
+          <div class="field"><label>ราคาขายต่อกิโล-เสริม (บาท/กก.)</label><input id="subPricePerKg" inputmode="decimal" oninput="calcIncome('sub')"></div>
+          <div class="field"><label>ปริมาณที่ขาย-เสริม (กก.)</label><input id="subQtyKg" inputmode="decimal" oninput="calcIncome('sub')"></div>
           <div class="field">
-            <label>รายได้อาชีพเสริม (บาท) <span class="auto" id="subAuto"></span></label>
+            <label>รายได้อาชีพเสริม (บาท:เดือน) <span class="auto" id="subAuto"></span></label>
             <input id="subIncome" inputmode="numeric">
           </div>
           <div class="field"><label>ต้นทุนอาชีพเสริม (บาท)</label><input id="subCost" inputmode="numeric"></div>
-          <div class="field"><label>รายได้จริง (บาท/เดือน)</label><input id="actualIncome" inputmode="numeric"></div>
+          <div class="field"><label>รายได้จริง (บาท:เดือน)</label><input id="actualIncome" inputmode="numeric"></div>
         </div>
       </div>
 
@@ -118,10 +115,9 @@
         <div class="tbl-wrap">
           <table id="tbl">
             <thead><tr>
-              <th>ลำดับ</th><th>ชื่อ - สกุล</th><th>บ้านเลขที่</th><th>หมู่</th><th>ตำบล</th><th>อำเภอ</th>
-              <th>จังหวัด</th><th>เบอร์โทร</th><th>อาชีพหลัก</th><th>ราคา/กก.หลัก</th><th>ปริมาณหลัก(กก.)</th>
-              <th>รายได้หลัก</th><th>ต้นทุนหลัก</th><th>เป้าหมาย</th><th>อาชีพเสริม</th>
-              <th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง/เดือน</th>
+              <th>ลำดับ</th><th>ชื่อ - สกุล</th><th>บ้านเลขที่</th><th>หมู่</th><th>จังหวัด</th><th>อำเภอ</th><th>ตำบล</th><th>เบอร์โทร</th>
+              <th>อาชีพหลัก</th><th>ราคา/กก.หลัก</th><th>ปริมาณหลัก(กก.)</th><th>รายได้หลัก</th><th>ต้นทุนหลัก</th><th>เป้าหมาย</th>
+              <th>อาชีพเสริม</th><th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง</th>
             </tr></thead>
             <tbody id="tbody"></tbody>
           </table>

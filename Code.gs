@@ -2,12 +2,12 @@
  * ระบบเก็บข้อมูลครัวเรือน — API (Google Sheet เป็นฐานข้อมูล)
  * ใช้คู่กับหน้าเว็บ static ที่ deploy บน GitHub + Netlify
  * ==================================================================
- *  ENDPOINT
- *    GET  ?action=list     → รายการข้อมูลทั้งหมด (JSON, ล่าสุดอยู่บน)
- *    GET  ?action=stats    → สถิติสรุป (JSON)
- *    GET  ?action=options  → ตัวเลือก dropdown (JSON)
- *    POST (body = JSON)     → บันทึก 1 ระเบียน
+ *  GET  ?action=list     → รายการข้อมูลทั้งหมด (JSON, ล่าสุดอยู่บน)
+ *  GET  ?action=stats    → สถิติสรุป (JSON)
+ *  GET  ?action=options  → ตัวเลือก dropdown (JSON)
+ *  POST (body = JSON)     → บันทึก 1 ระเบียน
  *
+ *  ลำดับคอลัมน์ตรงกับฟอร์ม: จังหวัด→อำเภอ→ตำบล และ อาชีพ→ราคา→ปริมาณ→รายได้
  *  รายได้ = ราคาขายต่อกิโล × ปริมาณที่ขาย (คำนวณอัตโนมัติ)
  * ==================================================================
  */
@@ -16,12 +16,10 @@
 const SHEET_NAME  = 'ข้อมูลครัวเรือน';
 const PROVINCES   = ['สงขลา', 'พัทลุง'];
 const OCCUPATIONS = ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ'];
-
-// (ทางเลือก) รหัสลับกันคนสุ่มยิงข้อมูล — ต้องตรงกับ TOKEN ใน app.js ('' = ไม่ตรวจ)
-const SECRET_TOKEN = '';
+const SECRET_TOKEN = '';   // '' = ไม่ตรวจ ; ถ้าตั้งต้องตรงกับ TOKEN ใน app.js
 
 const HEADERS = [
-  'ลำดับที่', 'ชื่อ - สกุล', 'บ้านเลขที่', 'หมู่ที่', 'ตำบล', 'อำเภอ', 'จังหวัด', 'เบอร์โทร',
+  'ลำดับที่', 'ชื่อ - สกุล', 'บ้านเลขที่', 'หมู่ที่', 'จังหวัด', 'อำเภอ', 'ตำบล', 'เบอร์โทร',
   'ระบุอาชีพหลัก', 'ราคาขายต่อกิโล-หลัก (บาท/กก.)', 'ปริมาณที่ขาย-หลัก (กก.)',
   'รายได้อาชีพหลัก (บาท:เดือน)', 'ต้นทุนอาชีพหลัก', 'รายได้เป้าหมายหลัก (บาท:เดือน)',
   'อาชีพเสริม', 'ราคาขายต่อกิโล-เสริม (บาท/กก.)', 'ปริมาณที่ขาย-เสริม (กก.)',
@@ -51,9 +49,7 @@ function doPost(e) {
 }
 
 function json_(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
 // ========================= ตัวช่วย =========================
@@ -69,7 +65,7 @@ function getSheet_() {
   return sh;
 }
 
-/** เขียน/ซ่อมแถวหัวตารางให้ตรงกับ HEADERS เสมอ (กันกรณีหัวเก่าไม่ตรงกับข้อมูล) */
+/** เขียน/ซ่อมแถวหัวตารางให้ตรงกับ HEADERS เสมอ */
 function ensureHeaders_(sh) {
   const current = sh.getRange(1, 1, 1, HEADERS.length).getValues()[0];
   let match = true;
@@ -78,15 +74,11 @@ function ensureHeaders_(sh) {
   }
   if (!match) {
     sh.getRange(1, 1, 1, HEADERS.length)
-      .setValues([HEADERS])
-      .setFontWeight('bold')
-      .setBackground('#1f6f54')
-      .setFontColor('#ffffff');
+      .setValues([HEADERS]).setFontWeight('bold').setBackground('#1f6f54').setFontColor('#ffffff');
     sh.setFrozenRows(1);
   }
 }
 
-/** แปลงข้อความตัวเลข → ตัวเลขจริง (ตัด comma) ; ว่าง = '' */
 function num_(v) {
   if (v === '' || v === null || v === undefined) return '';
   const n = Number(String(v).replace(/,/g, '').trim());
@@ -106,18 +98,17 @@ function calcIncome_(price, qty, fallback) {
 // ========================= อ่าน/เขียนข้อมูล =========================
 function saveRecord(d) {
   const lock = LockService.getScriptLock();
-  lock.waitLock(20000); // กันการเขียนชนกันเมื่อหลายคนกรอกพร้อมกัน
+  lock.waitLock(20000);
   try {
     const sh = getSheet_();
-    const nextNo = sh.getLastRow(); // แถวหัว = 1 → ระเบียนแรกได้ลำดับ 1
+    const nextNo = sh.getLastRow();
     const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
-
     const mainIncome = calcIncome_(d.mainPricePerKg, d.mainQtyKg, d.mainIncome);
     const subIncome  = calcIncome_(d.subPricePerKg,  d.subQtyKg,  d.subIncome);
 
     const row = [
-      nextNo, d.name || '', d.houseNo || '', d.moo || '', d.tambon || '', d.amphoe || '',
-      d.province || '', d.phone || '',
+      nextNo, d.name || '', d.houseNo || '', d.moo || '',
+      d.province || '', d.amphoe || '', d.tambon || '', d.phone || '',
       d.mainOcc || '', num_(d.mainPricePerKg), num_(d.mainQtyKg), mainIncome, num_(d.mainCost), num_(d.targetIncome),
       d.subOcc || '', num_(d.subPricePerKg), num_(d.subQtyKg), subIncome, num_(d.subCost), num_(d.actualIncome),
       now
@@ -131,18 +122,17 @@ function saveRecord(d) {
   }
 }
 
-/** คืนรายการทั้งหมด (ไม่ส่งคอลัมน์ 'วันที่บันทึก' ออกไปหน้าเว็บ) */
+/** คืนรายการทั้งหมด (ไม่ส่งคอลัมน์ 'วันที่บันทึก' ออกหน้าเว็บ) */
 function getRecords() {
   const sh = getSheet_();
   const last = sh.getLastRow();
   if (last < 2) return [];
   const values = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
   return values.map(r => ({
-    no: r[0], name: r[1], houseNo: r[2], moo: r[3], tambon: r[4], amphoe: r[5],
-    province: r[6], phone: r[7],
+    no: r[0], name: r[1], houseNo: r[2], moo: r[3],
+    province: r[4], amphoe: r[5], tambon: r[6], phone: r[7],
     mainOcc: r[8], mainPricePerKg: r[9], mainQtyKg: r[10], mainIncome: r[11], mainCost: r[12], targetIncome: r[13],
     subOcc: r[14], subPricePerKg: r[15], subQtyKg: r[16], subIncome: r[17], subCost: r[18], actualIncome: r[19]
-    // r[20] = วันที่บันทึก — เก็บในชีตแต่ไม่ส่งออก
   })).reverse();
 }
 
@@ -158,21 +148,17 @@ function getStats() {
   });
   const total = recs.length;
   return {
-    total: total,
-    byProvince: byProvince,
-    byMainOcc: byMainOcc,
-    sumMainIncome: sumMain,
-    avgMainIncome: total ? Math.round(sumMain / total) : 0
+    total: total, byProvince: byProvince, byMainOcc: byMainOcc,
+    sumMainIncome: sumMain, avgMainIncome: total ? Math.round(sumMain / total) : 0
   };
 }
 
-/** รันครั้งเดียวเพื่อเตรียม/ซ่อมหัวตารางให้ตรงโครงสร้างล่าสุด (ไม่ลบข้อมูล) */
+// ========================= ยูทิลิตี้ =========================
+/** เตรียม/ซ่อมหัวตารางให้ตรงโครงสร้างล่าสุด (ไม่ลบข้อมูล) */
 function setup() { getSheet_(); }
-
-/** ซ่อมเฉพาะแถวหัวตารางให้ตรงกับ HEADERS (ไม่ลบข้อมูล) */
 function fixHeaders() { getSheet_(); }
 
-/** ⚠️ ล้างข้อมูลทั้งหมดแล้วสร้างหัวตารางใหม่ (ใช้เริ่มเก็บข้อมูลใหม่หมด) */
+/** ⚠️ ล้างข้อมูลทั้งหมดแล้วสร้างหัวตารางใหม่ (เริ่มเก็บใหม่หมด) */
 function resetSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(SHEET_NAME);
