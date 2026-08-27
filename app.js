@@ -4,30 +4,59 @@
  *  ถ้าตั้ง SECRET_TOKEN ใน Code.gs ให้ใส่ค่าเดียวกันที่ TOKEN
  * ========================================================= */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbySYZE4mLS3FWN50jSAVxGry5e9-_vYz_nH5H4Mb1rZDvgCr7oCCrCIs9BkFcDKJdiR/exec',   // เช่น https://script.google.com/macros/s/AKfyc.../exec
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbySYZE4mLS3FWN50jSAVxGry5e9-_vYz_nH5H4Mb1rZDvgCr7oCCrCIs9BkFcDKJdiR/exec',
   TOKEN: ''
 };
 
-/* รายการตัวเลือก dropdown (แก้ที่นี่ได้เลย — ควรให้ตรงกับ OCCUPATIONS/PROVINCES ใน Code.gs) */
+/* รายการอาชีพ (แก้ที่นี่ได้เลย — ควรตรงกับ OCCUPATIONS ใน Code.gs)
+   ส่วนจังหวัด/อำเภอ/ตำบล ใช้ข้อมูลจาก thai-geo.js (ตัวแปร GEO) */
 const OPTIONS = {
-  provinces: ['สงขลา', 'พัทลุง'],
   occupations: ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ']
 };
 
 let RECORDS = [];
 
 // ==================== เติมตัวเลือก dropdown ====================
-// ใช้รายการในเครื่องโดยตรง เพื่อให้แสดงครบเสมอ ไม่ขึ้นกับเวอร์ชัน Apps Script ที่ deploy
-fill('province', OPTIONS.provinces);
+setOptions('province', Object.keys(GEO), '— เลือก —');
+setOptions('amphoe', [], '— เลือกจังหวัดก่อน —');
+setOptions('tambon', [], '— เลือกอำเภอก่อน —');
 fill('mainOcc', OPTIONS.occupations);
 fill('subOcc',  OPTIONS.occupations);
 
+/** ล้างแล้วสร้างตัวเลือกใหม่ พร้อม placeholder */
+function setOptions(id, arr, placeholder) {
+  const s = document.getElementById(id);
+  s.innerHTML = '';
+  const p = document.createElement('option');
+  p.value = ''; p.textContent = placeholder; s.appendChild(p);
+  arr.forEach(v => {
+    const op = document.createElement('option');
+    op.value = v; op.textContent = v; s.appendChild(op);
+  });
+}
+
+/** เติมตัวเลือกต่อท้าย (ใช้กับ select ที่มี placeholder ใน HTML อยู่แล้ว) */
 function fill(id, arr) {
   const s = document.getElementById(id);
   arr.forEach(v => {
     const op = document.createElement('option');
     op.value = v; op.textContent = v; s.appendChild(op);
   });
+}
+
+// จังหวัด → อำเภอ → ตำบล (อัตโนมัติ)
+function onProvince() {
+  const prov = document.getElementById('province').value;
+  const amps = (prov && GEO[prov]) ? Object.keys(GEO[prov]) : [];
+  setOptions('amphoe', amps, prov ? '— เลือกอำเภอ —' : '— เลือกจังหวัดก่อน —');
+  setOptions('tambon', [], '— เลือกอำเภอก่อน —');
+}
+
+function onAmphoe() {
+  const prov = document.getElementById('province').value;
+  const amp = document.getElementById('amphoe').value;
+  const tams = (prov && amp && GEO[prov] && GEO[prov][amp]) ? GEO[prov][amp] : [];
+  setOptions('tambon', tams, amp ? '— เลือกตำบล —' : '— เลือกอำเภอก่อน —');
 }
 
 // ==================== ฟอร์ม ====================
@@ -98,11 +127,12 @@ function save() {
 }
 
 function clearForm() {
-  ['name','houseNo','moo','tambon','amphoe','phone','mainOther','mainPricePerKg','mainQtyKg',
+  ['name','houseNo','moo','phone','mainOther','mainPricePerKg','mainQtyKg',
    'mainIncome','mainCost','targetIncome','subOther','subPricePerKg','subQtyKg','subIncome',
    'subCost','actualIncome']
     .forEach(id => document.getElementById(id).value = '');
   ['province','mainOcc','subOcc'].forEach(id => document.getElementById(id).value = '');
+  onProvince(); // รีเซ็ต อำเภอ/ตำบล กลับเป็น placeholder
   document.getElementById('mainAuto').textContent = '';
   document.getElementById('subAuto').textContent = '';
   toggleOther('main'); toggleOther('sub');

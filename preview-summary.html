@@ -108,11 +108,17 @@ tr:hover td{background:#fafcfb}
           </div>
           <div class="field"><label>บ้านเลขที่</label><input id="houseNo"></div>
           <div class="field"><label>หมู่ที่</label><input id="moo"></div>
-          <div class="field"><label>ตำบล</label><input id="tambon"></div>
-          <div class="field"><label>อำเภอ</label><input id="amphoe"></div>
           <div class="field">
             <label>จังหวัด</label>
-            <select id="province"><option value="">— เลือก —</option></select>
+            <select id="province" onchange="onProvince()"><option value="">— เลือก —</option></select>
+          </div>
+          <div class="field">
+            <label>อำเภอ</label>
+            <select id="amphoe" onchange="onAmphoe()"><option value="">— เลือกจังหวัดก่อน —</option></select>
+          </div>
+          <div class="field">
+            <label>ตำบล</label>
+            <select id="tambon"><option value="">— เลือกอำเภอก่อน —</option></select>
           </div>
           <div class="field"><label>เบอร์โทร</label><input id="phone" inputmode="tel"></div>
         </div>
@@ -203,19 +209,30 @@ tr:hover td{background:#fafcfb}
 
   <div class="toast" id="toast"></div>
   <script>
+/* ข้อมูลเขตการปกครอง (สงขลา, พัทลุง) — จังหวัด → อำเภอ → [ตำบล]
+   ที่มา: thailand-geography-data (ISO/ราชการ) */
+const GEO = {"สงขลา": {"กระแสสินธุ์": ["กระแสสินธุ์","เกาะใหญ่","เชิงแส","โรง"],"คลองหอยโข่ง": ["คลองหลา","คลองหอยโข่ง","ทุ่งลาน","โคกม่วง"],"ควนเนียง": ["ควนโส","บางเหรียง","รัตภูมิ","ห้วยลึก"],"จะนะ": ["ขุนตัดหวาย","คลองเปียะ","คู","จะโหนง","ตลิ่งชัน","ท่าหมอไทร","นาทับ","นาหว้า","น้ำขาว","บ้านนา","ป่าชิง","สะกอม","สะพานไม้แก่น","แค"],"นาทวี": ["คลองกวาง","คลองทราย","ฉาง","ทับช้าง","ท่าประดู่","นาทวี","นาหมอศรี","ประกอบ","ปลักหนู","สะท้อน"],"นาหม่อม": ["คลองหรัง","ทุ่งขมิ้น","นาหม่อม","พิจิตร"],"บางกล่ำ": ["ท่าช้าง","บางกล่ำ","บ้านหาร","แม่ทอม"],"ระโนด": ["คลองแดน","ตะเครียะ","ท่าบอน","บ่อตรุ","บ้านขาว","บ้านใหม่","ปากแตระ","พังยาง","ระวะ","ระโนด","วัดสน","แดนสงวน"],"รัตภูมิ": ["กำแพงเพชร","ควนรู","คูหาใต้","ท่าชะมวง","เขาพระ"],"สทิงพระ": ["กระดังงา","คลองรี","คูขุด","จะทิ้งพระ","ชุมพล","ดีหลวง","ท่าหิน","บ่อดาน","บ่อแดง","วัดจันทร์","สนามชัย"],"สะบ้าย้อย": ["คูหา","จะแหน","ทุ่งพอ","ธารคีรี","บาโหย","บ้านโหนด","สะบ้าย้อย","เขาแดง","เปียน"],"สะเดา": ["ทุ่งหมอ","ท่าโพธิ์","ปริก","ปาดังเบซาร์","พังลา","สะเดา","สำนักขาม","สำนักแต้ว","เขามีเกียรติ"],"สิงหนคร": ["ชะแล้","ชิงโค","ทำนบ","บางเขียด","ปากรอ","ป่าขาด","ม่วงงาม","รำแดง","วัดขนุน","สทิงหม้อ","หัวเขา"],"หาดใหญ่": ["คลองอู่ตะเภา","คลองแห","ควนลัง","คอหงส์","คูเต่า","ฉลุง","ทุ่งตำเสา","ทุ่งใหญ่","ท่าข้าม","น้ำน้อย","บ้านพรุ","พะตง","หาดใหญ่"],"เทพา": ["ท่าม่วง","ปากบาง","ลำไพล","วังใหญ่","สะกอม","เกาะสะบ้า","เทพา"],"เมืองสงขลา": ["ทุ่งหวัง","บ่อยาง","พะวง","เกาะยอ","เกาะแต้ว","เขารูปช้าง"]},"พัทลุง": {"กงหรา": ["กงหรา","คลองทรายขาว","คลองเฉลิม","ชะรัด","สมหวัง"],"ควนขนุน": ["ควนขนุน","ชะมวง","ดอนทราย","ทะเลน้อย","นาขยาด","ปันแต","พนมวังก์","พนางตุง","มะกอกเหนือ","แพรกหา","แหลมโตนด","โตนดด้วน"],"ตะโหมด": ["คลองใหญ่","ตะโหมด","แม่ขรี"],"บางแก้ว": ["ท่ามะเดื่อ","นาปะขอ","โคกสัก"],"ปากพะยูน": ["ดอนทราย","ดอนประดู่","ปากพะยูน","ฝาละมี","หารเทา","เกาะนางคำ","เกาะหมาก"],"ป่าบอน": ["ทุ่งนารี","ป่าบอน","วังใหม่","หนองธง","โคกทราย"],"ป่าพะยอม": ["บ้านพร้าว","ป่าพะยอม","ลานข่อย","เกาะเต่า"],"ศรีนครินทร์": ["ชุมพล","บ้านนา","ลำสินธุ์","อ่างทอง"],"ศรีบรรพต": ["ตะแพน","เขาปู่","เขาย่า"],"เขาชัยสน": ["ควนขนุน","จองถนน","หานโพธิ์","เขาชัยสน","โคกม่วง"],"เมืองพัทลุง": ["ควนมะพร้าว","คูหาสวรรค์","ชัยบุรี","ตำนาน","ท่ามิหรำ","ท่าแค","นาท่อม","นาโหนด","ปรางหมู่","พญาขัน","ร่มเมือง","ลำปำ","เขาเจียก","โคกชะงาย"]}};
+
+</script>
+<script>
 
 const MOCK_STATS = {total:5,byProvince:{'สงขลา':3,'พัทลุง':2},byMainOcc:{'ข้าวสังข์หยด':2,'พลู':1,'มะพร้าวน้ำหอม':1,'พริก':1},sumMainIncome:70000,avgMainIncome:14000};
 let RECORDS=[
- {no:1,name:'สมชาย ใจดี',houseNo:'12/3',moo:'4',tambon:'คูเต่า',amphoe:'หาดใหญ่',province:'สงขลา',phone:'0891112222',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:35,mainQtyKg:400,mainIncome:14000,mainCost:5000,targetIncome:16000,subOcc:'พลู',subPricePerKg:3,subQtyKg:1000,subIncome:3000,subCost:800,actualIncome:180000},
- {no:2,name:'สมหญิง รักไทย',houseNo:'88',moo:'2',tambon:'ควนลัง',amphoe:'หาดใหญ่',province:'สงขลา',phone:'0812223333',mainOcc:'มะพร้าวน้ำหอม',mainPricePerKg:20,mainQtyKg:600,mainIncome:12000,mainCost:3000,targetIncome:15000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:150000},
- {no:3,name:'อารีย์ มีสุข',houseNo:'5',moo:'7',tambon:'ท่ามะเดื่อ',amphoe:'บางแก้ว',province:'พัทลุง',phone:'0823334444',mainOcc:'พลู',mainPricePerKg:4,mainQtyKg:5000,mainIncome:20000,mainCost:6000,targetIncome:22000,subOcc:'พริก',subPricePerKg:60,subQtyKg:100,subIncome:6000,subCost:1500,actualIncome:240000},
- {no:4,name:'ประสิทธิ์ ตั้งใจ',houseNo:'19/1',moo:'1',tambon:'ลำปำ',amphoe:'เมืองพัทลุง',province:'พัทลุง',phone:'0834445555',mainOcc:'พริก',mainPricePerKg:55,mainQtyKg:200,mainIncome:11000,mainCost:4000,targetIncome:13000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:132000},
- {no:5,name:'วิภา งามพร้อม',houseNo:'204',moo:'9',tambon:'บ้านพรุ',amphoe:'หาดใหญ่',province:'สงขลา',phone:'0845556666',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:38,mainQtyKg:342,mainIncome:13000,mainCost:4500,targetIncome:15000,subOcc:'มะพร้าวน้ำหอม',subPricePerKg:18,subQtyKg:300,subIncome:5400,subCost:1200,actualIncome:172800}
+ {no:1,name:'สมชาย ใจดี',houseNo:'12/3',moo:'4',tambon:'คูเต่า',amphoe:'หาดใหญ่',province:'สงขลา',phone:'0891112222',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:35,mainQtyKg:400,mainIncome:14000,mainCost:5000,targetIncome:16000,subOcc:'พลู',subPricePerKg:3,subQtyKg:1000,subIncome:3000,subCost:800,actualIncome:15000},
+ {no:2,name:'สมหญิง รักไทย',houseNo:'88',moo:'2',tambon:'ควนลัง',amphoe:'หาดใหญ่',province:'สงขลา',phone:'0812223333',mainOcc:'มะพร้าวน้ำหอม',mainPricePerKg:20,mainQtyKg:600,mainIncome:12000,mainCost:3000,targetIncome:15000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:12500},
+ {no:3,name:'อารีย์ มีสุข',houseNo:'5',moo:'7',tambon:'ท่ามะเดื่อ',amphoe:'บางแก้ว',province:'พัทลุง',phone:'0823334444',mainOcc:'พลู',mainPricePerKg:4,mainQtyKg:5000,mainIncome:20000,mainCost:6000,targetIncome:22000,subOcc:'พริก',subPricePerKg:60,subQtyKg:100,subIncome:6000,subCost:1500,actualIncome:20000},
+ {no:4,name:'ประสิทธิ์ ตั้งใจ',houseNo:'19/1',moo:'1',tambon:'ลำปำ',amphoe:'เมืองพัทลุง',province:'พัทลุง',phone:'0834445555',mainOcc:'พริก',mainPricePerKg:55,mainQtyKg:200,mainIncome:11000,mainCost:4000,targetIncome:13000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:11000},
+ {no:5,name:'วิภา งามพร้อม',houseNo:'204',moo:'9',tambon:'บ้านพรุ',amphoe:'หาดใหญ่',province:'สงขลา',phone:'0845556666',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:38,mainQtyKg:342,mainIncome:13000,mainCost:4500,targetIncome:15000,subOcc:'มะพร้าวน้ำหอม',subPricePerKg:18,subQtyKg:300,subIncome:5400,subCost:1200,actualIncome:14400}
 ];
 function val(id){return (document.getElementById(id).value||'').trim();}
+function setOptions(id,arr,ph){const s=document.getElementById(id);s.innerHTML='';const p=document.createElement('option');p.value='';p.textContent=ph;s.appendChild(p);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});}
 function fill(id,arr){const s=document.getElementById(id);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});}
-fill('province',['สงขลา','พัทลุง']);
+setOptions('province',Object.keys(GEO),'— เลือก —');
+setOptions('amphoe',[],'— เลือกจังหวัดก่อน —');
+setOptions('tambon',[],'— เลือกอำเภอก่อน —');
 ['mainOcc','subOcc'].forEach(id=>fill(id,['ข้าวสังข์หยด','กล้วยหอมทอง','กุ้งก้ามกราม','พริก','มะพร้าวน้ำหอม','พลู','อื่น ๆ']));
+function onProvince(){const prov=document.getElementById('province').value;const amps=(prov&&GEO[prov])?Object.keys(GEO[prov]):[];setOptions('amphoe',amps,prov?'— เลือกอำเภอ —':'— เลือกจังหวัดก่อน —');setOptions('tambon',[],'— เลือกอำเภอก่อน —');}
+function onAmphoe(){const prov=document.getElementById('province').value;const amp=document.getElementById('amphoe').value;const tams=(prov&&amp&&GEO[prov]&&GEO[prov][amp])?GEO[prov][amp]:[];setOptions('tambon',tams,amp?'— เลือกตำบล —':'— เลือกอำเภอก่อน —');}
 function toggleOther(w){const s=document.getElementById(w+'Occ').value;document.getElementById(w+'Other-wrap').classList.toggle('hidden',s!=='อื่น ๆ');}
 function calcIncome(w){const p=val(w+'PricePerKg').replace(/,/g,'');const q=val(w+'QtyKg').replace(/,/g,'');const a=document.getElementById(w+'Auto');if(p!==''&&q!==''&&!isNaN(p)&&!isNaN(q)){document.getElementById(w+'Income').value=Number(p)*Number(q);if(a)a.textContent='· คำนวณอัตโนมัติ';}else if(a)a.textContent='';}
 function switchTab(t){document.getElementById('tab-form').classList.toggle('active',t==='form');document.getElementById('tab-data').classList.toggle('active',t==='data');document.getElementById('page-form').classList.toggle('hidden',t!=='form');document.getElementById('page-data').classList.toggle('hidden',t!=='data');if(t==='data')loadData();}
@@ -224,7 +241,6 @@ function loadData(){renderStats(MOCK_STATS);renderTable();}
 function renderStats(s){document.getElementById('st-total').textContent=(s.total||0).toLocaleString();document.getElementById('st-prov').textContent=Object.keys(s.byProvince||{}).length;document.getElementById('st-income').textContent=(s.sumMainIncome||0).toLocaleString();document.getElementById('st-avg').textContent=(s.avgMainIncome||0).toLocaleString();renderBreakdown('byProvince',s.byProvince);renderBreakdown('byOcc',s.byMainOcc);}
 function renderBreakdown(elId,obj){const el=document.getElementById(elId);el.innerHTML='';const en=Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]);if(!en.length){el.innerHTML='<div class="empty">ยังไม่มีข้อมูล</div>';return;}const mx=Math.max.apply(null,en.map(e=>e[1]));en.forEach(([k,c])=>{const pct=mx?Math.round(c/mx*100):0;const row=document.createElement('div');row.className='brow';const l=document.createElement('span');l.textContent=k;const bar=document.createElement('span');bar.className='bar';const f=document.createElement('i');f.style.width=pct+'%';bar.appendChild(f);const cn=document.createElement('span');cn.className='c';cn.textContent=c.toLocaleString();row.appendChild(l);row.appendChild(bar);row.appendChild(cn);el.appendChild(row);});}
 function renderTable(){const q=(document.getElementById('search').value||'').toLowerCase();const rows=RECORDS.filter(r=>!q||[r.name,r.tambon,r.amphoe,r.province,r.mainOcc,r.subOcc].join(' ').toLowerCase().includes(q));const tb=document.getElementById('tbody');tb.innerHTML='';const nf=v=>(v===''||v==null)?'':(isNaN(v)?v:Number(v).toLocaleString());rows.forEach(r=>{const tr=document.createElement('tr');[r.no,r.name,r.houseNo,r.moo,r.tambon,r.amphoe,r.province,r.phone,r.mainOcc,nf(r.mainPricePerKg),nf(r.mainQtyKg),nf(r.mainIncome),nf(r.mainCost),nf(r.targetIncome),r.subOcc,nf(r.subPricePerKg),nf(r.subQtyKg),nf(r.subIncome),nf(r.subCost),nf(r.actualIncome)].forEach(v=>{const td=document.createElement('td');td.textContent=(v==null)?'':v;tr.appendChild(td);});tb.appendChild(tr);});const e=document.getElementById('emptyMsg');if(rows.length===0){e.style.display='block';e.textContent=RECORDS.length?'ไม่พบข้อมูลที่ค้นหา':'ยังไม่มีข้อมูล';}else e.style.display='none';}
-switchTab('data');
 
 </script>
 </body>
