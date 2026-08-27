@@ -4,13 +4,19 @@
  *  ถ้าตั้ง SECRET_TOKEN ใน Code.gs ให้ใส่ค่าเดียวกันที่ TOKEN
  * ========================================================= */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw7S9Nm7e97VehY74Pp36kE39KTyUHZ5-TvagJjfjzolUy1VYDRi0sXAtVKNZrDUCVe/exec',  
-  TOKEN: ''
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw7S9Nm7e97VehY74Pp36kE39KTyUHZ5-TvagJjfjzolUy1VYDRi0sXAtVKNZrDUCVe/exec', 
 };
 
 /* รายการอาชีพ (แก้ที่นี่ได้ — ควรตรงกับ OCCUPATIONS ใน Code.gs)
    จังหวัด/อำเภอ/ตำบล ใช้ข้อมูลจาก thai-geo.js (ตัวแปร GEO) */
-const OCCUPATIONS = ['ข้าวสังข์หยด', 'กล้วยหอมทอง', 'กุ้งก้ามกราม', 'พริก', 'มะพร้าวน้ำหอม', 'พลู', 'อื่น ๆ'];
+const OCCUPATIONS = ['กล้วยหอมทอง', 'กุ้งก้ามกราม', 'ข้าวสังข์หยด', 'พริก', 'พลู', 'มะพร้าวน้ำหอม', 'อื่น ๆ'];
+
+/** เรียงอาชีพตามตัวอักษรไทย โดยคง "อื่น ๆ" ไว้ท้ายสุด */
+function sortOcc(list) {
+  const other = list.filter(x => x === 'อื่น ๆ');
+  const rest = list.filter(x => x !== 'อื่น ๆ').sort((a, b) => a.localeCompare(b, 'th'));
+  return rest.concat(other);
+}
 
 let RECORDS = [];
 
@@ -18,8 +24,8 @@ let RECORDS = [];
 setOptions('province', Object.keys(GEO), '— เลือก —');
 setOptions('amphoe', [], '— เลือก —');
 setOptions('tambon', [], '— เลือก —');
-fill('mainOcc', OCCUPATIONS);
-fill('subOcc',  OCCUPATIONS);
+fill('mainOcc', sortOcc(OCCUPATIONS));
+fill('subOcc',  sortOcc(OCCUPATIONS));
 
 /** ล้างแล้วสร้างตัวเลือกใหม่ พร้อม placeholder */
 function setOptions(id, arr, placeholder) {
@@ -94,7 +100,8 @@ function save() {
     mainOcc, mainPricePerKg: val('mainPricePerKg'), mainQtyKg: val('mainQtyKg'),
     mainIncome: val('mainIncome'), mainCost: val('mainCost'), targetIncome: val('targetIncome'),
     subOcc, subPricePerKg: val('subPricePerKg'), subQtyKg: val('subQtyKg'),
-    subIncome: val('subIncome'), subCost: val('subCost'), actualIncome: val('actualIncome')
+    subIncome: val('subIncome'), subCost: val('subCost'), actualIncome: val('actualIncome'),
+    note: val('note')
   };
 
   const btn = document.getElementById('saveBtn');
@@ -120,7 +127,7 @@ function save() {
 function clearForm() {
   ['name','houseNo','moo','phone','mainOther','mainPricePerKg','mainQtyKg',
    'mainIncome','mainCost','targetIncome','subOther','subPricePerKg','subQtyKg','subIncome',
-   'subCost','actualIncome']
+   'subCost','actualIncome','note']
     .forEach(id => document.getElementById(id).value = '');
   ['province','mainOcc','subOcc'].forEach(id => document.getElementById(id).value = '');
   onProvince(); // รีเซ็ต อำเภอ/ตำบล
@@ -190,7 +197,7 @@ function renderTable() {
     const tr = document.createElement('tr');
     [r.no, r.name, r.houseNo, r.moo, r.province, r.amphoe, r.tambon, r.phone,
      r.mainOcc, nf(r.mainPricePerKg), nf(r.mainQtyKg), nf(r.mainIncome), nf(r.mainCost), nf(r.targetIncome),
-     r.subOcc, nf(r.subPricePerKg), nf(r.subQtyKg), nf(r.subIncome), nf(r.subCost), nf(r.actualIncome)]
+     r.subOcc, nf(r.subPricePerKg), nf(r.subQtyKg), nf(r.subIncome), nf(r.subCost), nf(r.actualIncome), r.note]
       .forEach(v => { const td = document.createElement('td'); td.textContent = (v === null || v === undefined) ? '' : v; tr.appendChild(td); });
     tb.appendChild(tr);
   });

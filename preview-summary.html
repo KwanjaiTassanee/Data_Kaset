@@ -37,8 +37,9 @@ header p{margin:4px 0 0;opacity:.85;font-size:13px}
 label{font-size:13px;font-weight:500;color:var(--muted)}
 label .req{color:var(--err)}
 label .auto{color:var(--green);font-size:11px;font-weight:600}
-input,select{font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;width:100%}
-input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
+input,select,textarea{font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;width:100%}
+textarea{resize:vertical;min-height:44px;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
 
 /* ---- buttons ---- */
 .btn{background:var(--green);color:#fff;border:none;padding:13px 22px;border-radius:10px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;width:100%;transition:.15s}
@@ -158,6 +159,7 @@ tr:hover td{background:#fafcfb}
           </div>
           <div class="field"><label>ต้นทุนอาชีพเสริม (บาท)</label><input id="subCost" inputmode="numeric"></div>
           <div class="field"><label>รายได้จริง (บาท:เดือน)</label><input id="actualIncome" inputmode="numeric"></div>
+          <div class="field full"><label>หมายเหตุ</label><textarea id="note" rows="2" placeholder="ข้อมูลอื่น ๆ ที่เกี่ยวข้อง (ถ้ามี)"></textarea></div>
         </div>
       </div>
 
@@ -194,7 +196,7 @@ tr:hover td{background:#fafcfb}
             <thead><tr>
               <th>ลำดับ</th><th>ชื่อ - สกุล</th><th>บ้านเลขที่</th><th>หมู่</th><th>จังหวัด</th><th>อำเภอ</th><th>ตำบล</th><th>เบอร์โทร</th>
               <th>อาชีพหลัก</th><th>ราคา/กก.หลัก</th><th>ปริมาณหลัก(กก.)</th><th>รายได้หลัก</th><th>ต้นทุนหลัก</th><th>เป้าหมาย</th>
-              <th>อาชีพเสริม</th><th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง</th>
+              <th>อาชีพเสริม</th><th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง</th><th>หมายเหตุ</th>
             </tr></thead>
             <tbody id="tbody"></tbody>
           </table>
@@ -215,17 +217,19 @@ const GEO = {"สงขลา": {"กระแสสินธุ์": ["กร�
 
 const MOCK_STATS={total:5,byProvince:{'สงขลา':3,'พัทลุง':2},byMainOcc:{'ข้าวสังข์หยด':2,'พลู':1,'มะพร้าวน้ำหอม':1,'พริก':1},sumMainIncome:70000,avgMainIncome:14000};
 let RECORDS=[
- {no:1,name:'สมชาย ใจดี',houseNo:'12/3',moo:'4',province:'สงขลา',amphoe:'หาดใหญ่',tambon:'คูเต่า',phone:'0891112222',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:35,mainQtyKg:400,mainIncome:14000,mainCost:5000,targetIncome:16000,subOcc:'พลู',subPricePerKg:3,subQtyKg:1000,subIncome:3000,subCost:800,actualIncome:15000},
- {no:2,name:'สมหญิง รักไทย',houseNo:'88',moo:'2',province:'สงขลา',amphoe:'หาดใหญ่',tambon:'ควนลัง',phone:'0812223333',mainOcc:'มะพร้าวน้ำหอม',mainPricePerKg:20,mainQtyKg:600,mainIncome:12000,mainCost:3000,targetIncome:15000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:12500},
- {no:3,name:'อารีย์ มีสุข',houseNo:'5',moo:'7',province:'พัทลุง',amphoe:'บางแก้ว',tambon:'ท่ามะเดื่อ',phone:'0823334444',mainOcc:'พลู',mainPricePerKg:4,mainQtyKg:5000,mainIncome:20000,mainCost:6000,targetIncome:22000,subOcc:'พริก',subPricePerKg:60,subQtyKg:100,subIncome:6000,subCost:1500,actualIncome:20000},
- {no:4,name:'ประสิทธิ์ ตั้งใจ',houseNo:'19/1',moo:'1',province:'พัทลุง',amphoe:'เมืองพัทลุง',tambon:'ลำปำ',phone:'0834445555',mainOcc:'พริก',mainPricePerKg:55,mainQtyKg:200,mainIncome:11000,mainCost:4000,targetIncome:13000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:11000},
- {no:5,name:'วิภา งามพร้อม',houseNo:'204',moo:'9',province:'สงขลา',amphoe:'หาดใหญ่',tambon:'บ้านพรุ',phone:'0845556666',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:38,mainQtyKg:342,mainIncome:13000,mainCost:4500,targetIncome:15000,subOcc:'มะพร้าวน้ำหอม',subPricePerKg:18,subQtyKg:300,subIncome:5400,subCost:1200,actualIncome:14400}
+ {no:1,name:'สมชาย ใจดี',houseNo:'12/3',moo:'4',province:'สงขลา',amphoe:'หาดใหญ่',tambon:'คูเต่า',phone:'0891112222',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:35,mainQtyKg:400,mainIncome:14000,mainCost:5000,targetIncome:16000,subOcc:'พลู',subPricePerKg:3,subQtyKg:1000,subIncome:3000,subCost:800,actualIncome:15000,note:'ปลูกริมคลอง'},
+ {no:2,name:'สมหญิง รักไทย',houseNo:'88',moo:'2',province:'สงขลา',amphoe:'หาดใหญ่',tambon:'ควนลัง',phone:'0812223333',mainOcc:'มะพร้าวน้ำหอม',mainPricePerKg:20,mainQtyKg:600,mainIncome:12000,mainCost:3000,targetIncome:15000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:12500,note:''},
+ {no:3,name:'อารีย์ มีสุข',houseNo:'5',moo:'7',province:'พัทลุง',amphoe:'บางแก้ว',tambon:'ท่ามะเดื่อ',phone:'0823334444',mainOcc:'พลู',mainPricePerKg:4,mainQtyKg:5000,mainIncome:20000,mainCost:6000,targetIncome:22000,subOcc:'พริก',subPricePerKg:60,subQtyKg:100,subIncome:6000,subCost:1500,actualIncome:20000,note:'มีโรงเรือน'},
+ {no:4,name:'ประสิทธิ์ ตั้งใจ',houseNo:'19/1',moo:'1',province:'พัทลุง',amphoe:'เมืองพัทลุง',tambon:'ลำปำ',phone:'0834445555',mainOcc:'พริก',mainPricePerKg:55,mainQtyKg:200,mainIncome:11000,mainCost:4000,targetIncome:13000,subOcc:'',subPricePerKg:'',subQtyKg:'',subIncome:'',subCost:'',actualIncome:11000,note:''},
+ {no:5,name:'วิภา งามพร้อม',houseNo:'204',moo:'9',province:'สงขลา',amphoe:'หาดใหญ่',tambon:'บ้านพรุ',phone:'0845556666',mainOcc:'ข้าวสังข์หยด',mainPricePerKg:38,mainQtyKg:342,mainIncome:13000,mainCost:4500,targetIncome:15000,subOcc:'มะพร้าวน้ำหอม',subPricePerKg:18,subQtyKg:300,subIncome:5400,subCost:1200,actualIncome:14400,note:'สมาชิกกลุ่มวิสาหกิจ'}
 ];
+const OCC=['กล้วยหอมทอง','กุ้งก้ามกราม','ข้าวสังข์หยด','พริก','พลู','มะพร้าวน้ำหอม','อื่น ๆ'];
+function sortOcc(l){const o=l.filter(x=>x==='อื่น ๆ');const r=l.filter(x=>x!=='อื่น ๆ').sort((a,b)=>a.localeCompare(b,'th'));return r.concat(o);}
 function val(id){return (document.getElementById(id).value||'').trim();}
 function setOptions(id,arr,ph){const s=document.getElementById(id);s.innerHTML='';const p=document.createElement('option');p.value='';p.textContent=ph;s.appendChild(p);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});}
 function fill(id,arr){const s=document.getElementById(id);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});}
 setOptions('province',Object.keys(GEO),'— เลือก —');setOptions('amphoe',[],'— เลือก —');setOptions('tambon',[],'— เลือก —');
-['mainOcc','subOcc'].forEach(id=>fill(id,['ข้าวสังข์หยด','กล้วยหอมทอง','กุ้งก้ามกราม','พริก','มะพร้าวน้ำหอม','พลู','อื่น ๆ']));
+fill('mainOcc',sortOcc(OCC));fill('subOcc',sortOcc(OCC));
 function onProvince(){const prov=document.getElementById('province').value;const amps=(prov&&GEO[prov])?Object.keys(GEO[prov]):[];setOptions('amphoe',amps,'— เลือก —');setOptions('tambon',[],'— เลือก —');}
 function onAmphoe(){const prov=document.getElementById('province').value;const amp=document.getElementById('amphoe').value;const tams=(prov&&amp&&GEO[prov]&&GEO[prov][amp])?GEO[prov][amp]:[];setOptions('tambon',tams,'— เลือก —');}
 function toggleOther(w){const s=document.getElementById(w+'Occ').value;document.getElementById(w+'Other-wrap').classList.toggle('hidden',s!=='อื่น ๆ');}
@@ -235,7 +239,7 @@ function save(){alert('โหมดพรีวิว: ไม่บันทึ�
 function loadData(){renderStats(MOCK_STATS);renderTable();}
 function renderStats(s){document.getElementById('st-total').textContent=(s.total||0).toLocaleString();document.getElementById('st-prov').textContent=Object.keys(s.byProvince||{}).length;document.getElementById('st-income').textContent=(s.sumMainIncome||0).toLocaleString();document.getElementById('st-avg').textContent=(s.avgMainIncome||0).toLocaleString();renderBreakdown('byProvince',s.byProvince);renderBreakdown('byOcc',s.byMainOcc);}
 function renderBreakdown(elId,obj){const el=document.getElementById(elId);el.innerHTML='';const en=Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]);if(!en.length){el.innerHTML='<div class="empty">ยังไม่มีข้อมูล</div>';return;}const mx=Math.max.apply(null,en.map(e=>e[1]));en.forEach(([k,c])=>{const pct=mx?Math.round(c/mx*100):0;const row=document.createElement('div');row.className='brow';const l=document.createElement('span');l.textContent=k;const bar=document.createElement('span');bar.className='bar';const f=document.createElement('i');f.style.width=pct+'%';bar.appendChild(f);const cn=document.createElement('span');cn.className='c';cn.textContent=c.toLocaleString();row.appendChild(l);row.appendChild(bar);row.appendChild(cn);el.appendChild(row);});}
-function renderTable(){const q=(document.getElementById('search').value||'').toLowerCase();const rows=RECORDS.filter(r=>!q||[r.name,r.tambon,r.amphoe,r.province,r.mainOcc,r.subOcc].join(' ').toLowerCase().includes(q));const tb=document.getElementById('tbody');tb.innerHTML='';const nf=v=>(v===''||v==null)?'':(isNaN(v)?v:Number(v).toLocaleString());rows.forEach(r=>{const tr=document.createElement('tr');[r.no,r.name,r.houseNo,r.moo,r.province,r.amphoe,r.tambon,r.phone,r.mainOcc,nf(r.mainPricePerKg),nf(r.mainQtyKg),nf(r.mainIncome),nf(r.mainCost),nf(r.targetIncome),r.subOcc,nf(r.subPricePerKg),nf(r.subQtyKg),nf(r.subIncome),nf(r.subCost),nf(r.actualIncome)].forEach(v=>{const td=document.createElement('td');td.textContent=(v==null)?'':v;tr.appendChild(td);});tb.appendChild(tr);});const e=document.getElementById('emptyMsg');if(rows.length===0){e.style.display='block';e.textContent=RECORDS.length?'ไม่พบข้อมูลที่ค้นหา':'ยังไม่มีข้อมูล';}else e.style.display='none';}
+function renderTable(){const q=(document.getElementById('search').value||'').toLowerCase();const rows=RECORDS.filter(r=>!q||[r.name,r.tambon,r.amphoe,r.province,r.mainOcc,r.subOcc].join(' ').toLowerCase().includes(q));const tb=document.getElementById('tbody');tb.innerHTML='';const nf=v=>(v===''||v==null)?'':(isNaN(v)?v:Number(v).toLocaleString());rows.forEach(r=>{const tr=document.createElement('tr');[r.no,r.name,r.houseNo,r.moo,r.province,r.amphoe,r.tambon,r.phone,r.mainOcc,nf(r.mainPricePerKg),nf(r.mainQtyKg),nf(r.mainIncome),nf(r.mainCost),nf(r.targetIncome),r.subOcc,nf(r.subPricePerKg),nf(r.subQtyKg),nf(r.subIncome),nf(r.subCost),nf(r.actualIncome),r.note].forEach(v=>{const td=document.createElement('td');td.textContent=(v==null)?'':v;tr.appendChild(td);});tb.appendChild(tr);});const e=document.getElementById('emptyMsg');if(rows.length===0){e.style.display='block';e.textContent=RECORDS.length?'ไม่พบข้อมูลที่ค้นหา':'ยังไม่มีข้อมูล';}else e.style.display='none';}
 
 </script>
 </body>
