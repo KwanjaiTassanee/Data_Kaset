@@ -4,7 +4,7 @@
  *  ถ้าตั้ง SECRET_TOKEN ใน Code.gs ให้ใส่ค่าเดียวกันที่ TOKEN
  * ========================================================= */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw7S9Nm7e97VehY74Pp36kE39KTyUHZ5-TvagJjfjzolUy1VYDRi0sXAtVKNZrDUCVe/exec', 
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz13sEWJS7pojzpYAu5a-4VeorFv5chLVdxW0elYdsm9K6QcvMGDxtoIGDEGopz8nUK/exec', 
 };
 
 /* รายการอาชีพ (แก้ที่นี่ได้ — ควรตรงกับ OCCUPATIONS ใน Code.gs)
