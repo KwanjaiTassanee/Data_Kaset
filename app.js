@@ -4,7 +4,7 @@
  *  ถ้าตั้ง SECRET_TOKEN ใน Code.gs ให้ใส่ค่าเดียวกันที่ TOKEN
  * ========================================================= */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzZRzWXozN2_jfDLFPi44p-n_D9GC74J3gEzaJN18JEDQNe82ZaNU4sY1SkCBrLx8Ew/exec',  
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw7S9Nm7e97VehY74Pp36kE39KTyUHZ5-TvagJjfjzolUy1VYDRi0sXAtVKNZrDUCVe/exec',  
   TOKEN: ''
 };
 
