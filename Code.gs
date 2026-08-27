@@ -17,7 +17,7 @@ const SHEET_NAME  = 'ข้อมูลครัวเรือน';
 const PROVINCES   = ['สงขลา', 'พัทลุง'];
 const OCCUPATIONS = ['กล้วยหอมทอง', 'กุ้งก้ามกราม', 'ข้าวสังข์หยด', 'พริก', 'พลู', 'มะพร้าวน้ำหอม', 'อื่น ๆ'];
 const SECRET_TOKEN = '';   // '' = ไม่ตรวจ ; ถ้าตั้งต้องตรงกับ TOKEN ใน app.js
-const VERSION = '2026-final-5';  // ใช้ตรวจว่า deploy โค้ดล่าสุดแล้วหรือยัง
+const VERSION = '2026-final-6';  // ใช้ตรวจว่า deploy โค้ดล่าสุดแล้วหรือยัง
 
 const HEADERS = [
   'ลำดับที่', 'ชื่อ - สกุล', 'บ้านเลขที่', 'หมู่ที่', 'จังหวัด', 'อำเภอ', 'ตำบล', 'เบอร์โทร',
@@ -66,7 +66,7 @@ function getSheet_() {
   return sh;
 }
 
-/** เขียน/ซ่อมแถวหัวตารางให้ตรงกับ HEADERS เสมอ */
+/** เขียน/ซ่อมแถวหัวตารางให้ตรงกับ HEADERS เสมอ (ล้างหัวเก่าที่ค้างก่อน) */
 function ensureHeaders_(sh) {
   const current = sh.getRange(1, 1, 1, HEADERS.length).getValues()[0];
   let match = true;
@@ -74,6 +74,8 @@ function ensureHeaders_(sh) {
     if (String(current[i] || '') !== HEADERS[i]) { match = false; break; }
   }
   if (!match) {
+    // ล้างหัวเดิมทั้งแถวก่อน กันหัวเก่าค้าง เช่น 'วันที่บันทึก' ซ้ำในคอลัมน์เกิน
+    sh.getRange(1, 1, 1, sh.getMaxColumns()).clearContent();
     sh.getRange(1, 1, 1, HEADERS.length)
       .setValues([HEADERS]).setFontWeight('bold').setBackground('#1f6f54').setFontColor('#ffffff');
     sh.setFrozenRows(1);
@@ -216,6 +218,11 @@ function fixFormats() {
 function resetSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(SHEET_NAME);
-  if (sh) sh.clear();
+  if (sh) {
+    sh.clear();
+    // ลบคอลัมน์ส่วนเกิน กันคอลัมน์เก่าค้าง (เช่น วันที่บันทึกซ้ำ)
+    const extra = sh.getMaxColumns() - HEADERS.length;
+    if (extra > 0) sh.deleteColumns(HEADERS.length + 1, extra);
+  }
   getSheet_();
 }
