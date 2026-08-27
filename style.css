@@ -21,9 +21,11 @@ header p{margin:4px 0 0;opacity:.85;font-size:13px}
 /* ---- card / form ---- */
 .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,60,45,.04)}
 .sec-title{font-weight:700;color:var(--green-d);border-left:4px solid var(--green);padding-left:10px;margin:4px 0 14px;font-size:15px}
-/* ฟอร์มคอลัมน์เดียว เรียงลงตามลำดับคอลัมน์ในชีต */
-.form-col{display:flex;flex-direction:column;gap:12px;max-width:560px}
+/* ฟอร์ม 2 คอลัมน์ (ยุบเป็น 1 คอลัมน์บนจอเล็ก) */
+.form-col{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+@media(max-width:640px){.form-col{grid-template-columns:1fr}}
 .field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
 label{font-size:13px;font-weight:500;color:var(--muted)}
 label .req{color:var(--err)}
 label .auto{color:var(--green);font-size:11px;font-weight:600}

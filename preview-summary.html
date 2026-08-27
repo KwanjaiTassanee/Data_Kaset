@@ -29,9 +29,11 @@ header p{margin:4px 0 0;opacity:.85;font-size:13px}
 /* ---- card / form ---- */
 .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,60,45,.04)}
 .sec-title{font-weight:700;color:var(--green-d);border-left:4px solid var(--green);padding-left:10px;margin:4px 0 14px;font-size:15px}
-/* ฟอร์มคอลัมน์เดียว เรียงลงตามลำดับคอลัมน์ในชีต */
-.form-col{display:flex;flex-direction:column;gap:12px;max-width:560px}
+/* ฟอร์ม 2 คอลัมน์ (ยุบเป็น 1 คอลัมน์บนจอเล็ก) */
+.form-col{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+@media(max-width:640px){.form-col{grid-template-columns:1fr}}
 .field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
 label{font-size:13px;font-weight:500;color:var(--muted)}
 label .req{color:var(--err)}
 label .auto{color:var(--green);font-size:11px;font-weight:600}
@@ -99,9 +101,9 @@ tr:hover td{background:#fafcfb}
     <!-- ============ หน้าฟอร์ม (คอลัมน์เดียว เรียงตามลำดับคอลัมน์ในชีต) ============ -->
     <div id="page-form">
       <div class="card">
-        <div class="sec-title">ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
+        <div class="sec-title">ตอนที่ 1 · ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
         <div class="form-col">
-          <div class="field"><label>ชื่อ - สกุล <span class="req">*</span></label><input id="name" required></div>
+          <div class="field full"><label>ชื่อ - สกุล <span class="req">*</span></label><input id="name" required></div>
           <div class="field"><label>บ้านเลขที่</label><input id="houseNo"></div>
           <div class="field"><label>หมู่ที่</label><input id="moo"></div>
           <div class="field">
@@ -222,10 +224,10 @@ let RECORDS=[
 function val(id){return (document.getElementById(id).value||'').trim();}
 function setOptions(id,arr,ph){const s=document.getElementById(id);s.innerHTML='';const p=document.createElement('option');p.value='';p.textContent=ph;s.appendChild(p);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});}
 function fill(id,arr){const s=document.getElementById(id);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});}
-setOptions('province',Object.keys(GEO),'— เลือก —');setOptions('amphoe',[],'— เลือกจังหวัดก่อน —');setOptions('tambon',[],'— เลือกอำเภอก่อน —');
+setOptions('province',Object.keys(GEO),'— เลือก —');setOptions('amphoe',[],'— เลือก —');setOptions('tambon',[],'— เลือก —');
 ['mainOcc','subOcc'].forEach(id=>fill(id,['ข้าวสังข์หยด','กล้วยหอมทอง','กุ้งก้ามกราม','พริก','มะพร้าวน้ำหอม','พลู','อื่น ๆ']));
-function onProvince(){const prov=document.getElementById('province').value;const amps=(prov&&GEO[prov])?Object.keys(GEO[prov]):[];setOptions('amphoe',amps,prov?'— เลือกอำเภอ —':'— เลือกจังหวัดก่อน —');setOptions('tambon',[],'— เลือกอำเภอก่อน —');}
-function onAmphoe(){const prov=document.getElementById('province').value;const amp=document.getElementById('amphoe').value;const tams=(prov&&amp&&GEO[prov]&&GEO[prov][amp])?GEO[prov][amp]:[];setOptions('tambon',tams,amp?'— เลือกตำบล —':'— เลือกอำเภอก่อน —');}
+function onProvince(){const prov=document.getElementById('province').value;const amps=(prov&&GEO[prov])?Object.keys(GEO[prov]):[];setOptions('amphoe',amps,'— เลือก —');setOptions('tambon',[],'— เลือก —');}
+function onAmphoe(){const prov=document.getElementById('province').value;const amp=document.getElementById('amphoe').value;const tams=(prov&&amp&&GEO[prov]&&GEO[prov][amp])?GEO[prov][amp]:[];setOptions('tambon',tams,'— เลือก —');}
 function toggleOther(w){const s=document.getElementById(w+'Occ').value;document.getElementById(w+'Other-wrap').classList.toggle('hidden',s!=='อื่น ๆ');}
 function calcIncome(w){const p=val(w+'PricePerKg').replace(/,/g,'');const q=val(w+'QtyKg').replace(/,/g,'');const a=document.getElementById(w+'Auto');if(p!==''&&q!==''&&!isNaN(p)&&!isNaN(q)){document.getElementById(w+'Income').value=Number(p)*Number(q);if(a)a.textContent='· คำนวณอัตโนมัติ';}else if(a)a.textContent='';}
 function switchTab(t){document.getElementById('tab-form').classList.toggle('active',t==='form');document.getElementById('tab-data').classList.toggle('active',t==='data');document.getElementById('page-form').classList.toggle('hidden',t!=='form');document.getElementById('page-data').classList.toggle('hidden',t!=='data');if(t==='data')loadData();}

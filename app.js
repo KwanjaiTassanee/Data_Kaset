@@ -4,7 +4,7 @@
  *  ถ้าตั้ง SECRET_TOKEN ใน Code.gs ให้ใส่ค่าเดียวกันที่ TOKEN
  * ========================================================= */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbySYZE4mLS3FWN50jSAVxGry5e9-_vYz_nH5H4Mb1rZDvgCr7oCCrCIs9BkFcDKJdiR/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbySYZE4mLS3FWN50jSAVxGry5e9-_vYz_nH5H4Mb1rZDvgCr7oCCrCIs9BkFcDKJdiR/exec',  
   TOKEN: ''
 };
 
@@ -16,8 +16,8 @@ let RECORDS = [];
 
 // ==================== เติมตัวเลือก dropdown ====================
 setOptions('province', Object.keys(GEO), '— เลือก —');
-setOptions('amphoe', [], '— เลือกจังหวัดก่อน —');
-setOptions('tambon', [], '— เลือกอำเภอก่อน —');
+setOptions('amphoe', [], '— เลือก —');
+setOptions('tambon', [], '— เลือก —');
 fill('mainOcc', OCCUPATIONS);
 fill('subOcc',  OCCUPATIONS);
 
@@ -40,15 +40,15 @@ function fill(id, arr) {
 function onProvince() {
   const prov = document.getElementById('province').value;
   const amps = (prov && GEO[prov]) ? Object.keys(GEO[prov]) : [];
-  setOptions('amphoe', amps, prov ? '— เลือกอำเภอ —' : '— เลือกจังหวัดก่อน —');
-  setOptions('tambon', [], '— เลือกอำเภอก่อน —');
+  setOptions('amphoe', amps, '— เลือก —');
+  setOptions('tambon', [], '— เลือก —');
 }
 
 function onAmphoe() {
   const prov = document.getElementById('province').value;
   const amp = document.getElementById('amphoe').value;
   const tams = (prov && amp && GEO[prov] && GEO[prov][amp]) ? GEO[prov][amp] : [];
-  setOptions('tambon', tams, amp ? '— เลือกตำบล —' : '— เลือกอำเภอก่อน —');
+  setOptions('tambon', tams, '— เลือก —');
 }
 
 // ==================== ฟอร์ม ====================
