@@ -25,7 +25,7 @@ const HEADERS = [
   'ระบุอาชีพหลัก', 'ราคาขายต่อกิโล-หลัก (บาท/กก.)', 'ปริมาณที่ขาย-หลัก (กก.)',
   'รายได้อาชีพหลัก (บาท:เดือน)', 'ต้นทุนอาชีพหลัก', 'รายได้เป้าหมายหลัก (บาท:เดือน)',
   'อาชีพเสริม', 'ราคาขายต่อกิโล-เสริม (บาท/กก.)', 'ปริมาณที่ขาย-เสริม (กก.)',
-  'รายได้อาชีพเสริม (บาท:เดือน)', 'ต้นทุนอาชีพเสริม', 'รายได้จริง (บาท:ปี)',
+  'รายได้อาชีพเสริม (บาท:เดือน)', 'ต้นทุนอาชีพเสริม', 'รายได้จริง (บาท:เดือน)',
   'วันที่บันทึก'
 ];
 
@@ -65,7 +65,18 @@ function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) sh = ss.insertSheet(SHEET_NAME);
-  if (sh.getLastRow() === 0) {
+  ensureHeaders_(sh);
+  return sh;
+}
+
+/** เขียน/ซ่อมแถวหัวตารางให้ตรงกับ HEADERS เสมอ (กันกรณีหัวเก่าไม่ตรงกับข้อมูล) */
+function ensureHeaders_(sh) {
+  const current = sh.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+  let match = true;
+  for (let i = 0; i < HEADERS.length; i++) {
+    if (String(current[i] || '') !== HEADERS[i]) { match = false; break; }
+  }
+  if (!match) {
     sh.getRange(1, 1, 1, HEADERS.length)
       .setValues([HEADERS])
       .setFontWeight('bold')
@@ -73,7 +84,6 @@ function getSheet_() {
       .setFontColor('#ffffff');
     sh.setFrozenRows(1);
   }
-  return sh;
 }
 
 /** แปลงข้อความตัวเลข → ตัวเลขจริง (ตัด comma) ; ว่าง = '' */
@@ -156,5 +166,16 @@ function getStats() {
   };
 }
 
-/** รันครั้งเดียวเพื่อเตรียมชีตล่วงหน้า (ไม่บังคับ) */
+/** รันครั้งเดียวเพื่อเตรียม/ซ่อมหัวตารางให้ตรงโครงสร้างล่าสุด (ไม่ลบข้อมูล) */
 function setup() { getSheet_(); }
+
+/** ซ่อมเฉพาะแถวหัวตารางให้ตรงกับ HEADERS (ไม่ลบข้อมูล) */
+function fixHeaders() { getSheet_(); }
+
+/** ⚠️ ล้างข้อมูลทั้งหมดแล้วสร้างหัวตารางใหม่ (ใช้เริ่มเก็บข้อมูลใหม่หมด) */
+function resetSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (sh) sh.clear();
+  getSheet_();
+}

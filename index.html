@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DATA-KASET : ระบบเก็บข้อมูลการเกษตรครัวเรือน (วช.69)</title>
+  <title>ระบบเก็บข้อมูลครัวเรือน</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <div class="wrap head-inner">
-      <h1>ระบบเก็บข้อมูลการเกตรครัวเรือน โครงการ : การเพิ่มประสิทธิภาพการใช้น้ำและเสริมความสามารถทางการประมงและการเกษตรในลุ่มน้ำทะเลสาบสงขลา </h1>
-      <p>บันทึกข้อมูลพื้นฐาน อาชีพ และรายได้ของพื้นที่เกษตร จังหวัดพัทลุง - สงขลา</p>
+      <h1>ระบบเก็บข้อมูลครัวเรือนเป้าหมาย</h1>
+      <p>บันทึกข้อมูลพื้นฐาน อาชีพ และรายได้ — จัดเก็บลง Google Sheet</p>
     </div>
   </header>
 
@@ -89,8 +89,8 @@
       <div class="stats">
         <div class="stat"><div class="n" id="st-total">–</div><div class="l">จำนวนครัวเรือน</div></div>
         <div class="stat"><div class="n" id="st-prov">–</div><div class="l">จังหวัด</div></div>
-        <div class="stat"><div class="n" id="st-income">–</div><div class="l">รวมรายได้หลัก (บาท/เดือน)</div></div>
-        <div class="stat"><div class="n" id="st-avg">–</div><div class="l">รายได้หลักเฉลี่ย (บาท/เดือน)</div></div>
+        <div class="stat"><div class="n" id="st-income">–</div><div class="l">รวมรายได้หลัก (บาท)</div></div>
+        <div class="stat"><div class="n" id="st-avg">–</div><div class="l">รายได้หลักเฉลี่ย (บาท)</div></div>
       </div>
 
       <div class="card">
@@ -99,7 +99,7 @@
       </div>
 
       <div class="card">
-        <div class="sec-title">จำแนกตามอาชีพหลัก (พืชเกษตร)</div>
+        <div class="sec-title">จำแนกตามอาชีพหลัก (พืช)</div>
         <div id="byOcc" class="breakdown"><div class="empty">กำลังโหลด…</div></div>
       </div>
 
@@ -113,9 +113,9 @@
           <table id="tbl">
             <thead><tr>
               <th>ลำดับ</th><th>ชื่อ - สกุล</th><th>บ้านเลขที่</th><th>หมู่</th><th>ตำบล</th><th>อำเภอ</th>
-              <th>จังหวัด</th><th>เบอร์โทร</th><th>อาชีพหลัก</th><th>ราคา/กก.หลัก</th><th>ปริมาณผลผลิตหลัก(กก.)</th>
+              <th>จังหวัด</th><th>เบอร์โทร</th><th>อาชีพหลัก</th><th>ราคา/กก.หลัก</th><th>ปริมาณหลัก(กก.)</th>
               <th>รายได้หลัก</th><th>ต้นทุนหลัก</th><th>เป้าหมาย</th><th>อาชีพเสริม</th>
-              <th>ราคา/กก.เสริม</th><th>ปริมาณผลผลิตเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง/เดือน</th>
+              <th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง/เดือน</th>
             </tr></thead>
             <tbody id="tbody"></tbody>
           </table>
