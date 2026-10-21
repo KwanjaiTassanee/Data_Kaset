@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ระบบเก็บข้อมูลครัวเรือน มทร.ศรีวิชัย สงขลา</title>
+  <title>ระบบเก็บข้อมูลครัวเรือน</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <div class="wrap head-inner">
-      <h1>ระบบเก็บข้อมูลครัวเรือนเป้าหมาย : มทร.ศรีวิชัย สงขลา</h1>
-      <p>บันทึกข้อมูลพื้นฐาน อาชีพ และรายได้ — โครงการ (วช.69): การเพิ่มประสิทธิภาพการใช้น้ำและเสริมความสามารถทางการประมงและการเกษตรในลุ่มน้ำทะเลสาบสงขลา</p>
+      <h1>ระบบเก็บข้อมูลครัวเรือนเป้าหมาย</h1>
+      <p>บันทึกข้อมูลพื้นฐาน อาชีพ และรายได้ — จัดเก็บลง Google Sheet</p>
     </div>
   </header>
 
@@ -24,7 +24,7 @@
     <!-- ============ หน้าฟอร์ม (คอลัมน์เดียว เรียงตามลำดับคอลัมน์ในชีต) ============ -->
     <div id="page-form">
       <div class="card">
-        <div class="sec-title">ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
+        <div class="sec-title">ตอนที่ 1 · ข้อมูลพื้นฐานของครัวเรือนเป้าหมาย</div>
         <div class="form-col">
           <div class="field full"><label>ชื่อ - สกุล <span class="req">*</span></label><input id="name" required></div>
           <div class="field"><label>บ้านเลขที่</label><input id="houseNo"></div>
@@ -56,6 +56,14 @@
           <div class="field hidden" id="mainOther-wrap">
             <label>ระบุอาชีพหลัก (อื่น ๆ)</label><input id="mainOther">
           </div>
+          <div class="field full">
+            <label>พื้นที่ปลูก-หลัก</label>
+            <div class="area">
+              <input id="mainAreaRai" inputmode="decimal" placeholder="ไร่"><span>ไร่</span>
+              <input id="mainAreaNgan" inputmode="decimal" placeholder="งาน"><span>งาน</span>
+              <input id="mainAreaWa" inputmode="decimal" placeholder="ตร.วา"><span>ตร.วา</span>
+            </div>
+          </div>
           <div class="field"><label>ราคาขายต่อกิโล-หลัก (บาท/กก.)</label><input id="mainPricePerKg" inputmode="decimal" oninput="calcIncome('main')"></div>
           <div class="field"><label>ปริมาณที่ขาย-หลัก (กก.)</label><input id="mainQtyKg" inputmode="decimal" oninput="calcIncome('main')"></div>
           <div class="field">
@@ -72,6 +80,14 @@
           </div>
           <div class="field hidden" id="subOther-wrap">
             <label>ระบุอาชีพเสริม (อื่น ๆ)</label><input id="subOther">
+          </div>
+          <div class="field full">
+            <label>พื้นที่ปลูก-เสริม</label>
+            <div class="area">
+              <input id="subAreaRai" inputmode="decimal" placeholder="ไร่"><span>ไร่</span>
+              <input id="subAreaNgan" inputmode="decimal" placeholder="งาน"><span>งาน</span>
+              <input id="subAreaWa" inputmode="decimal" placeholder="ตร.วา"><span>ตร.วา</span>
+            </div>
           </div>
           <div class="field"><label>ราคาขายต่อกิโล-เสริม (บาท/กก.)</label><input id="subPricePerKg" inputmode="decimal" oninput="calcIncome('sub')"></div>
           <div class="field"><label>ปริมาณที่ขาย-เสริม (กก.)</label><input id="subQtyKg" inputmode="decimal" oninput="calcIncome('sub')"></div>
@@ -117,8 +133,8 @@
           <table id="tbl">
             <thead><tr>
               <th>ลำดับ</th><th>ชื่อ - สกุล</th><th>บ้านเลขที่</th><th>หมู่</th><th>จังหวัด</th><th>อำเภอ</th><th>ตำบล</th><th>เบอร์โทร</th>
-              <th>อาชีพหลัก</th><th>ราคา/กก.หลัก</th><th>ปริมาณหลัก(กก.)</th><th>รายได้หลัก</th><th>ต้นทุนหลัก</th><th>เป้าหมาย</th>
-              <th>อาชีพเสริม</th><th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง</th><th>หมายเหตุ</th>
+              <th>อาชีพหลัก</th><th>ไร่(หลัก)</th><th>งาน(หลัก)</th><th>ตร.วา(หลัก)</th><th>ราคา/กก.หลัก</th><th>ปริมาณหลัก(กก.)</th><th>รายได้หลัก</th><th>ต้นทุนหลัก</th><th>เป้าหมาย</th>
+              <th>อาชีพเสริม</th><th>ไร่(เสริม)</th><th>งาน(เสริม)</th><th>ตร.วา(เสริม)</th><th>ราคา/กก.เสริม</th><th>ปริมาณเสริม(กก.)</th><th>รายได้เสริม</th><th>ต้นทุนเสริม</th><th>รายได้จริง</th><th>หมายเหตุ</th>
             </tr></thead>
             <tbody id="tbody"></tbody>
           </table>

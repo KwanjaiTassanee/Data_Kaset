@@ -4,7 +4,8 @@
  *  ถ้าตั้ง SECRET_TOKEN ใน Code.gs ให้ใส่ค่าเดียวกันที่ TOKEN
  * ========================================================= */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz13sEWJS7pojzpYAu5a-4VeorFv5chLVdxW0elYdsm9K6QcvMGDxtoIGDEGopz8nUK/exec', 
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz13sEWJS7pojzpYAu5a-4VeorFv5chLVdxW0elYdsm9K6QcvMGDxtoIGDEGopz8nUK/exec',   // เช่น https://script.google.com/macros/s/AKfyc.../exec
+  TOKEN: ''
 };
 
 /* รายการอาชีพ (แก้ที่นี่ได้ — ควรตรงกับ OCCUPATIONS ใน Code.gs)
@@ -97,9 +98,11 @@ function save() {
     token: CONFIG.TOKEN,
     name, houseNo: val('houseNo'), moo: val('moo'),
     province: val('province'), amphoe: val('amphoe'), tambon: val('tambon'), phone: val('phone'),
-    mainOcc, mainPricePerKg: val('mainPricePerKg'), mainQtyKg: val('mainQtyKg'),
+    mainOcc, mainAreaRai: val('mainAreaRai'), mainAreaNgan: val('mainAreaNgan'), mainAreaWa: val('mainAreaWa'),
+    mainPricePerKg: val('mainPricePerKg'), mainQtyKg: val('mainQtyKg'),
     mainIncome: val('mainIncome'), mainCost: val('mainCost'), targetIncome: val('targetIncome'),
-    subOcc, subPricePerKg: val('subPricePerKg'), subQtyKg: val('subQtyKg'),
+    subOcc, subAreaRai: val('subAreaRai'), subAreaNgan: val('subAreaNgan'), subAreaWa: val('subAreaWa'),
+    subPricePerKg: val('subPricePerKg'), subQtyKg: val('subQtyKg'),
     subIncome: val('subIncome'), subCost: val('subCost'), actualIncome: val('actualIncome'),
     note: val('note')
   };
@@ -125,8 +128,9 @@ function save() {
 }
 
 function clearForm() {
-  ['name','houseNo','moo','phone','mainOther','mainPricePerKg','mainQtyKg',
-   'mainIncome','mainCost','targetIncome','subOther','subPricePerKg','subQtyKg','subIncome',
+  ['name','houseNo','moo','phone','mainOther','mainAreaRai','mainAreaNgan','mainAreaWa',
+   'mainPricePerKg','mainQtyKg','mainIncome','mainCost','targetIncome','subOther',
+   'subAreaRai','subAreaNgan','subAreaWa','subPricePerKg','subQtyKg','subIncome',
    'subCost','actualIncome','note']
     .forEach(id => document.getElementById(id).value = '');
   ['province','mainOcc','subOcc'].forEach(id => document.getElementById(id).value = '');
@@ -196,8 +200,10 @@ function renderTable() {
   rows.forEach(r => {
     const tr = document.createElement('tr');
     [r.no, r.name, r.houseNo, r.moo, r.province, r.amphoe, r.tambon, r.phone,
-     r.mainOcc, nf(r.mainPricePerKg), nf(r.mainQtyKg), nf(r.mainIncome), nf(r.mainCost), nf(r.targetIncome),
-     r.subOcc, nf(r.subPricePerKg), nf(r.subQtyKg), nf(r.subIncome), nf(r.subCost), nf(r.actualIncome), r.note]
+     r.mainOcc, nf(r.mainAreaRai), nf(r.mainAreaNgan), nf(r.mainAreaWa),
+     nf(r.mainPricePerKg), nf(r.mainQtyKg), nf(r.mainIncome), nf(r.mainCost), nf(r.targetIncome),
+     r.subOcc, nf(r.subAreaRai), nf(r.subAreaNgan), nf(r.subAreaWa),
+     nf(r.subPricePerKg), nf(r.subQtyKg), nf(r.subIncome), nf(r.subCost), nf(r.actualIncome), r.note]
       .forEach(v => { const td = document.createElement('td'); td.textContent = (v === null || v === undefined) ? '' : v; tr.appendChild(td); });
     tb.appendChild(tr);
   });
