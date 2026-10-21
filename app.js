@@ -213,6 +213,68 @@ function renderTable() {
   else empty.style.display = 'none';
 }
 
+// ==================== ดาวน์โหลด Excel / CSV ====================
+// หัวตาราง + ลำดับฟิลด์ (ตรงกับ Code.gs / ชีต ยกเว้นวันที่บันทึก)
+const EXPORT_COLS = [
+  ['ลำดับที่', 'no'], ['ชื่อ - สกุล', 'name'], ['บ้านเลขที่', 'houseNo'], ['หมู่ที่', 'moo'],
+  ['จังหวัด', 'province'], ['อำเภอ', 'amphoe'], ['ตำบล', 'tambon'], ['เบอร์โทร', 'phone'],
+  ['อาชีพหลัก', 'mainOcc'], ['พื้นที่ปลูก-หลัก (ไร่)', 'mainAreaRai'], ['พื้นที่ปลูก-หลัก (งาน)', 'mainAreaNgan'], ['พื้นที่ปลูก-หลัก (ตร.วา)', 'mainAreaWa'],
+  ['ราคาขายต่อกิโล-หลัก', 'mainPricePerKg'], ['ปริมาณที่ขาย-หลัก (กก.)', 'mainQtyKg'], ['รายได้อาชีพหลัก', 'mainIncome'], ['ต้นทุนอาชีพหลัก', 'mainCost'], ['รายได้เป้าหมายหลัก', 'targetIncome'],
+  ['อาชีพเสริม', 'subOcc'], ['พื้นที่ปลูก-เสริม (ไร่)', 'subAreaRai'], ['พื้นที่ปลูก-เสริม (งาน)', 'subAreaNgan'], ['พื้นที่ปลูก-เสริม (ตร.วา)', 'subAreaWa'],
+  ['ราคาขายต่อกิโล-เสริม', 'subPricePerKg'], ['ปริมาณที่ขาย-เสริม (กก.)', 'subQtyKg'], ['รายได้อาชีพเสริม', 'subIncome'], ['ต้นทุนอาชีพเสริม', 'subCost'], ['รายได้จริง', 'actualIncome'],
+  ['หมายเหตุ', 'note']
+];
+
+/** คืนรายการตามที่กรองด้วยช่องค้นหาปัจจุบัน */
+function exportRows() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  return RECORDS.filter(r => !q ||
+    [r.name, r.tambon, r.amphoe, r.province, r.mainOcc, r.subOcc].join(' ').toLowerCase().includes(q));
+}
+
+function fileStamp() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes());
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function downloadCSV() {
+  const rows = exportRows();
+  if (!rows.length) { toast('ไม่มีข้อมูลให้ดาวน์โหลด', true); return; }
+  const esc = v => {
+    v = (v === null || v === undefined) ? '' : String(v);
+    return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  };
+  const header = EXPORT_COLS.map(c => esc(c[0])).join(',');
+  const body = rows.map(r => EXPORT_COLS.map(c => esc(r[c[1]])).join(',')).join('\n');
+  const csv = '\uFEFF' + header + '\n' + body;   // BOM ให้ Excel อ่านภาษาไทยถูก
+  triggerDownload(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), 'ข้อมูลครัวเรือน_' + fileStamp() + '.csv');
+  toast('ดาวน์โหลด CSV แล้ว (' + rows.length + ' รายการ)');
+}
+
+/** Excel แบบ .xls (ตาราง HTML) — เปิดใน Excel ได้ ภาษาไทยถูกต้อง ไม่ต้องใช้ไลบรารี */
+function downloadExcel() {
+  const rows = exportRows();
+  if (!rows.length) { toast('ไม่มีข้อมูลให้ดาวน์โหลด', true); return; }
+  const esc = v => String(v === null || v === undefined ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const th = EXPORT_COLS.map(c => '<th style="background:#1f6f54;color:#fff;border:1px solid #ccc;padding:4px">' + esc(c[0]) + '</th>').join('');
+  const trs = rows.map(r => '<tr>' + EXPORT_COLS.map(c =>
+    '<td style="border:1px solid #ccc;padding:4px;mso-number-format:\'\\@\'">' + esc(r[c[1]]) + '</td>').join('') + '</tr>').join('');
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">' +
+    '<head><meta charset="utf-8"></head><body><table border="1">' +
+    '<thead><tr>' + th + '</tr></thead><tbody>' + trs + '</tbody></table></body></html>';
+  triggerDownload(new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' }), 'ข้อมูลครัวเรือน_' + fileStamp() + '.xls');
+  toast('ดาวน์โหลด Excel แล้ว (' + rows.length + ' รายการ)');
+}
+
 // ==================== แจ้งเตือน ====================
 let toastTimer;
 function toast(msg, isErr) {
