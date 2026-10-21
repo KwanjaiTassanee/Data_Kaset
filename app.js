@@ -193,7 +193,8 @@ function renderBreakdown(elId, obj) {
 function renderTable() {
   const q = (document.getElementById('search').value || '').toLowerCase();
   const rows = RECORDS.filter(r => !q ||
-    [r.name, r.tambon, r.amphoe, r.province, r.mainOcc, r.subOcc].join(' ').toLowerCase().includes(q));
+    [r.name, r.tambon, r.amphoe, r.province, r.mainOcc, r.subOcc].join(' ').toLowerCase().includes(q))
+    .sort((a, b) => (Number(a.no) || 0) - (Number(b.no) || 0));   // เรียงลำดับ 1 → ล่าสุด
   const tb = document.getElementById('tbody'); tb.innerHTML = '';
   const nf = v => (v === '' || v === null || v === undefined) ? '' : (isNaN(v) ? v : Number(v).toLocaleString());
 
@@ -229,7 +230,8 @@ const EXPORT_COLS = [
 function exportRows() {
   const q = (document.getElementById('search').value || '').toLowerCase();
   return RECORDS.filter(r => !q ||
-    [r.name, r.tambon, r.amphoe, r.province, r.mainOcc, r.subOcc].join(' ').toLowerCase().includes(q));
+    [r.name, r.tambon, r.amphoe, r.province, r.mainOcc, r.subOcc].join(' ').toLowerCase().includes(q))
+    .sort((a, b) => (Number(a.no) || 0) - (Number(b.no) || 0));   // เรียงลำดับ 1 → ล่าสุด
 }
 
 function fileStamp() {
